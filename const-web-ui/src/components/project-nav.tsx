@@ -22,6 +22,7 @@ export function ProjectNav({ projectId }: { projectId: string }) {
     { suffix: '/documents', label: t('documents') },
     { suffix: '/evm', label: t('evm') },
     { suffix: '/members', label: t('members') },
+    { suffix: '/chat', label: '💬 Site Chat' },
   ] as const;
 
   return (

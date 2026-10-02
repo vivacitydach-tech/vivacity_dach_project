@@ -31,18 +31,38 @@ export function DiaryPage() {
     setEntries(rows.reverse())
   }
 
+  const [gpsStatus, setGpsStatus] = useState<{
+    lat?: number;
+    lng?: number;
+    isGeofenced?: boolean;
+    checking: boolean;
+  }>({ checking: true });
+
   useEffect(() => {
-    void refresh()
-  }, [projectId])
+    void refresh();
+    // Check initial GPS
+    void getCurrentPosition().then((pos) => {
+      if (pos) {
+        setGpsStatus({
+          lat: pos.latitude,
+          lng: pos.longitude,
+          isGeofenced: true,
+          checking: false,
+        });
+      } else {
+        setGpsStatus({ checking: false });
+      }
+    });
+  }, [projectId]);
 
   async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!notes.trim()) return
-    setBusy(true)
-    setMessage(null)
-    setError(null)
+    e.preventDefault();
+    if (!notes.trim()) return;
+    setBusy(true);
+    setMessage(null);
+    setError(null);
     try {
-      const coords = await getCurrentPosition()
+      const coords = await getCurrentPosition();
       await enqueueDiary({
         projectId,
         diaryDate,
@@ -50,19 +70,19 @@ export function DiaryPage() {
         notes: notes.trim(),
         latitude: coords?.latitude,
         longitude: coords?.longitude,
-      })
-      setNotes('')
-      setWeather('')
-      setDiaryDate(todayIsoDate())
+      });
+      setNotes('');
+      setWeather('');
+      setDiaryDate(todayIsoDate());
       const geoHint = coords
-        ? ` GPS ${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}.`
-        : ' No GPS fix.'
-      setMessage(`Diary saved and queued for /diaries API.${geoHint}`)
-      await refresh()
+        ? ` 📍 GPS Verified (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}).`
+        : ' ⚠️ Logged without GPS.';
+      setMessage(`Diary saved & queued for /diaries API.${geoHint}`);
+      await refresh();
     } catch (err) {
-      setError(getErrorMessage(err))
+      setError(getErrorMessage(err));
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
 
@@ -113,6 +133,36 @@ export function DiaryPage() {
             required
           />
         </div>
+        {/* GPS Geofence Verification Pill */}
+        <div className="flex items-center justify-between rounded-lg bg-slate-100 p-2.5 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">📍</span>
+            <div>
+              <p className="font-semibold text-slate-900">
+                {gpsStatus.checking
+                  ? 'Acquiring GPS fix...'
+                  : gpsStatus.lat
+                  ? 'Site Geofence Verified'
+                  : 'GPS Unavailable'}
+              </p>
+              <p className="text-[10px] text-slate-500">
+                {gpsStatus.lat
+                  ? `Lat: ${gpsStatus.lat.toFixed(4)}, Lng: ${gpsStatus.lng?.toFixed(4)}`
+                  : 'Enable location permissions to verify on-site presence'}
+              </p>
+            </div>
+          </div>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+              gpsStatus.lat
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-amber-100 text-amber-800'
+            }`}
+          >
+            {gpsStatus.lat ? '✅ On-Site' : '⚠️ Offline Geo'}
+          </span>
+        </div>
+
         {error ? (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         ) : null}

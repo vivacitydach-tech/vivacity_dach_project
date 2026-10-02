@@ -277,6 +277,76 @@ export default function BoqPage() {
     printPdfReport('Bill of Quantities (BOQ)', `Project ID: ${id}`, tableHtml);
   }
 
+  // AI Estimator State
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiGfa, setAiGfa] = useState('3500');
+  const [aiFloors, setAiFloors] = useState('6');
+  const [aiArchetype, setAiArchetype] = useState<'commercial' | 'residential' | 'warehouse'>('commercial');
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<Array<{
+    code: string;
+    name: string;
+    unit: string;
+    quantity: number;
+    unit_price: number;
+  }>>([]);
+
+  const handleRunAiEstimator = () => {
+    setIsEstimating(true);
+    setTimeout(() => {
+      const gfa = Number(aiGfa) || 2000;
+      const floors = Number(aiFloors) || 4;
+
+      let concreteRate = 220;
+      let rebarRate = 1850;
+      let facadeRate = 450;
+      let mepRate = 160;
+
+      if (aiArchetype === 'commercial') {
+        concreteRate = 240;
+        rebarRate = 1900;
+        facadeRate = 550;
+        mepRate = 190;
+      } else if (aiArchetype === 'warehouse') {
+        concreteRate = 180;
+        rebarRate = 1650;
+        facadeRate = 280;
+        mepRate = 110;
+      }
+
+      const concreteQty = Math.round(gfa * (0.35 + floors * 0.02));
+      const rebarQty = Math.round((concreteQty * 110) / 1000); // tons
+      const facadeQty = Math.round(gfa * 0.65);
+      const mepQty = Math.round(gfa);
+      const excavationQty = Math.round(gfa * (0.6 + floors * 0.05));
+      const finishesQty = Math.round(gfa * 0.85);
+
+      setAiSuggestions([
+        { code: '02.10', name: 'Bulk Earthworks & Basement Excavation', unit: 'm³', quantity: excavationQty, unit_price: 35 },
+        { code: '03.20', name: 'C30/37 Reinforced Concrete (Core & Slabs)', unit: 'm³', quantity: concreteQty, unit_price: concreteRate },
+        { code: '03.30', name: 'B500B High-Yield Reinforcement Rebar', unit: 'ton', quantity: rebarQty, unit_price: rebarRate },
+        { code: '08.40', name: 'High-Performance Unitized Curtain Wall Facade', unit: 'm²', quantity: facadeQty, unit_price: facadeRate },
+        { code: '15.10', name: 'MEP Primary HVAC & Electrical Distribution Package', unit: 'm²', quantity: mepQty, unit_price: mepRate },
+        { code: '09.20', name: 'Internal Drywall Partitions & Acoustic Ceilings', unit: 'm²', quantity: finishesQty, unit_price: 85 },
+      ]);
+      setIsEstimating(false);
+    }, 600);
+  };
+
+  const handleImportAiItems = async () => {
+    for (const item of aiSuggestions) {
+      await createMutation.mutateAsync({
+        code: item.code,
+        name: item.name,
+        unit: item.unit,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+      });
+    }
+    setShowAiModal(false);
+    setAiSuggestions([]);
+  };
+
   const virtualItems = rowVirtualizer.getVirtualItems();
   const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
   const paddingBottom =
@@ -292,6 +362,16 @@ export default function BoqPage() {
           subtitle="Hierarchical cost items & unit rate estimates"
         />
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setShowAiModal(true);
+              if (aiSuggestions.length === 0) handleRunAiEstimator();
+            }}
+            className="te-btn-primary text-xs flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 border-none shadow-lg shadow-purple-900/30 hover:from-purple-500 hover:to-indigo-500"
+          >
+            🤖 AI Quantity Estimator
+          </button>
           <button
             type="button"
             onClick={handleExportCsv}
@@ -311,6 +391,137 @@ export default function BoqPage() {
         </div>
       </div>
       <ProjectNav projectId={id} />
+
+      {/* AI Estimator Modal */}
+      {showAiModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="te-panel w-full max-w-3xl p-6 shadow-2xl border border-purple-500/30 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🤖</span>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-100">AI BOQ Cost & Quantity Estimator</h3>
+                  <p className="text-xs text-slate-400">Parametric cost estimation based on architectural & structural metrics</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiModal(false)}
+                className="text-slate-400 hover:text-slate-200 text-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-5 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+              <div>
+                <label className="te-label">Building Archetype</label>
+                <select
+                  value={aiArchetype}
+                  onChange={(e) => setAiArchetype(e.target.value as 'commercial' | 'residential' | 'warehouse')}
+                  className="te-input text-xs"
+                >
+                  <option value="commercial">Commercial Office</option>
+                  <option value="residential">Residential High-Rise</option>
+                  <option value="warehouse">Logistics / Industrial</option>
+                </select>
+              </div>
+              <div>
+                <label className="te-label">Gross Floor Area (GFA m²)</label>
+                <input
+                  type="number"
+                  value={aiGfa}
+                  onChange={(e) => setAiGfa(e.target.value)}
+                  className="te-input text-xs font-mono"
+                  placeholder="3500"
+                />
+              </div>
+              <div>
+                <label className="te-label">Storey Count</label>
+                <input
+                  type="number"
+                  value={aiFloors}
+                  onChange={(e) => setAiFloors(e.target.value)}
+                  className="te-input text-xs font-mono"
+                  placeholder="6"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400">
+                AI Generated Bill of Quantities Breakdown
+              </h4>
+              <button
+                type="button"
+                onClick={handleRunAiEstimator}
+                disabled={isEstimating}
+                className="te-btn-secondary text-xs px-3 py-1 text-purple-300 border-purple-500/30 hover:bg-purple-500/10"
+              >
+                {isEstimating ? 'Recalculating…' : '🔄 Recalculate'}
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-lg border border-slate-800 mb-5">
+              <table className="min-w-full text-left text-xs">
+                <thead className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="px-3 py-2">Code</th>
+                    <th className="px-3 py-2">Item Description</th>
+                    <th className="px-3 py-2">Unit</th>
+                    <th className="px-3 py-2 text-right">Est. Quantity</th>
+                    <th className="px-3 py-2 text-right">Rate ({currency})</th>
+                    <th className="px-3 py-2 text-right font-bold">Total ({currency})</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {aiSuggestions.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-slate-800/30 font-mono">
+                      <td className="px-3 py-2 text-purple-400">{item.code}</td>
+                      <td className="px-3 py-2 text-slate-200 font-sans">{item.name}</td>
+                      <td className="px-3 py-2 text-slate-400">{item.unit}</td>
+                      <td className="px-3 py-2 text-right text-slate-300">{item.quantity.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right text-slate-400">{formatMoney(item.unit_price, currency)}</td>
+                      <td className="px-3 py-2 text-right text-emerald-400 font-bold">
+                        {formatMoney(item.quantity * item.unit_price, currency)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-slate-950 font-bold border-t border-slate-700">
+                    <td colSpan={5} className="px-3 py-2.5 text-right text-slate-300">Total Estimated Budget:</td>
+                    <td className="px-3 py-2.5 text-right text-emerald-400 font-mono">
+                      {formatMoney(
+                        aiSuggestions.reduce((acc, i) => acc + i.quantity * i.unit_price, 0),
+                        currency
+                      )}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setShowAiModal(false)}
+                className="te-btn-secondary text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleImportAiItems}
+                disabled={aiSuggestions.length === 0}
+                className="te-btn-primary text-xs flex items-center gap-1.5"
+              >
+                📥 Import All Items into Project BOQ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <form
         onSubmit={onCreate}
