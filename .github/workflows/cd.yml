@@ -1,0 +1,31 @@
+name: Production VPS Continuous Deployment (CD)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Production VPS
+    runs-on: ubuntu-latest
+    if: false # Enable after setting GitHub Secrets (VPS_HOST, VPS_SSH_KEY, VPS_USER)
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Execute Deployment via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER || 'root' }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/target-enterprise
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose --env-file .env.docker up -d --build
+            docker system prune -f
+            docker compose --env-file .env.docker ps
