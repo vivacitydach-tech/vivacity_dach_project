@@ -15,7 +15,7 @@ async function bootstrap() {
   app.enableCors({
     origin: corsOrigin
       ? corsOrigin.split(',').map((o) => o.trim())
-      : ['http://localhost:3001', 'http://localhost:3002'],
+      : true,
     credentials: true,
   });
 
