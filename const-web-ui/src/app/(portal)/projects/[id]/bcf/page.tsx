@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '@/components/page-header';
 import { ProjectNav } from '@/components/project-nav';
 import { PriorityBadge } from '@/components/status-badge';
+import { BimViewer } from '@/components/bim-viewer';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui-states';
 import { useI18n } from '@/components/i18n-provider';
 import { apiGet, apiPatch, apiPost, getErrorMessage } from '@/lib/api';
@@ -39,6 +40,7 @@ export default function BcfPage() {
     useState<(typeof ISSUE_PRIORITIES)[number]>('medium');
   const [description, setDescription] = useState('');
   const [comments, setComments] = useState('');
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [rowError, setRowError] = useState<string | null>(null);
 
@@ -97,9 +99,26 @@ export default function BcfPage() {
     <div>
       <PageHeader
         title={t('bcf')}
-        subtitle="OpenBIM BCF topics linked to defect / snag issues"
+        subtitle="OpenBIM 3D coordination model & BCF topics linked to defect / clash issues"
       />
       <ProjectNav projectId={id} />
+
+      {/* 3D BIM Viewer Section */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+            🏗️ 3D Architectural & BIM Model Viewer
+          </h3>
+          <span className="text-xs text-slate-400">
+            {topics.length} BCF Issue Pinpoints Loaded
+          </span>
+        </div>
+        <BimViewer
+          topics={topics}
+          selectedTopicId={selectedTopicId}
+          onSelectTopic={(tp) => setSelectedTopicId(tp.id)}
+        />
+      </div>
 
       <form
         onSubmit={onSubmit}

@@ -17,6 +17,7 @@ import {
 } from '@/lib/api';
 import { getCurrency } from '@/lib/auth';
 import { formatMoney, multiplyStrings } from '@/lib/format';
+import { exportToCsv, printPdfReport } from '@/lib/export';
 import type { BoqNode, UnitRate } from '@/lib/types';
 
 type FlatRow = BoqNode & { depth: number; isLeaf: boolean };
@@ -219,6 +220,63 @@ export default function BoqPage() {
     saveMutation.mutate({ itemId: row.id, body });
   }
 
+  function handleExportCsv() {
+    const headers = [
+      'Code',
+      'Item Name',
+      'Unit',
+      'Quantity',
+      `Unit Price (${currency})`,
+      `Total Amount (${currency})`,
+    ];
+    const exportData = rows.map((r) => [
+      r.code,
+      r.name,
+      r.unit || '-',
+      r.quantity || '0',
+      r.unit_price || '0',
+      multiplyStrings(r.quantity, r.unit_price),
+    ]);
+    exportToCsv(`BOQ-Project-${id}`, headers, exportData);
+  }
+
+  function handlePrintPdf() {
+    const tableRows = rows
+      .map(
+        (r) => `
+      <tr>
+        <td style="padding-left: ${r.depth * 18 + 8}px; font-weight: ${r.isLeaf ? 'normal' : 'bold'}">${r.code}</td>
+        <td style="font-weight: ${r.isLeaf ? 'normal' : 'bold'}">${r.name}</td>
+        <td>${r.unit || '-'}</td>
+        <td class="text-right">${r.quantity || '-'}</td>
+        <td class="text-right">${r.unit_price ? formatMoney(r.unit_price, currency) : '-'}</td>
+        <td class="text-right font-bold">${formatMoney(multiplyStrings(r.quantity, r.unit_price), currency)}</td>
+      </tr>
+    `,
+      )
+      .join('');
+
+    const tableHtml = `
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Unit</th>
+            <th class="text-right">Quantity</th>
+            <th class="text-right">Unit Price (${currency})</th>
+            <th class="text-right">Total (${currency})</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    `;
+
+    printPdfReport('Bill of Quantities (BOQ)', `Project ID: ${id}`, tableHtml);
+  }
+
   const virtualItems = rowVirtualizer.getVirtualItems();
   const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
   const paddingBottom =
@@ -228,10 +286,30 @@ export default function BoqPage() {
 
   return (
     <div>
-      <PageHeader
-        title={t('billOfQuantities')}
-        subtitle="Hierarchical cost items"
-      />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <PageHeader
+          title={t('billOfQuantities')}
+          subtitle="Hierarchical cost items & unit rate estimates"
+        />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={rows.length === 0}
+            className="te-btn-secondary text-xs flex items-center gap-1.5"
+          >
+            📊 Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={handlePrintPdf}
+            disabled={rows.length === 0}
+            className="te-btn-secondary text-xs flex items-center gap-1.5"
+          >
+            📄 Print PDF Report
+          </button>
+        </div>
+      </div>
       <ProjectNav projectId={id} />
 
       <form

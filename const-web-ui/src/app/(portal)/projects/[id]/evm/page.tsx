@@ -10,6 +10,7 @@ import { useI18n } from '@/components/i18n-provider';
 import { apiGet, apiPost, getErrorMessage } from '@/lib/api';
 import { getCurrency } from '@/lib/auth';
 import { formatDate, formatMoney, formatNumber } from '@/lib/format';
+import { exportToCsv, printPdfReport } from '@/lib/export';
 import type { EvmAlert, EvmSnapshot } from '@/lib/types';
 
 function IndexBar({
@@ -163,22 +164,105 @@ export default function EvmPage() {
     false;
   const showAlertBanner = spiAlert || cpiAlert;
 
+  function handleExportCsv() {
+    const headers = [
+      'Date',
+      `PV (${currency})`,
+      `EV (${currency})`,
+      `AC (${currency})`,
+      `BAC (${currency})`,
+      'SPI',
+      'CPI',
+    ];
+    const rows = (query.data ?? []).map((s) => [
+      formatDate(s.as_of_date),
+      s.pv,
+      s.ev,
+      s.ac,
+      s.bac,
+      s.spi || '-',
+      s.cpi || '-',
+    ]);
+    exportToCsv(`EVM-Performance-Project-${id}`, headers, rows);
+  }
+
+  function handlePrintPdf() {
+    const tableRows = (query.data ?? []).map((s) => `
+      <tr>
+        <td>${formatDate(s.as_of_date)}</td>
+        <td class="text-right">${formatMoney(s.pv, currency)}</td>
+        <td class="text-right">${formatMoney(s.ev, currency)}</td>
+        <td class="text-right">${formatMoney(s.ac, currency)}</td>
+        <td class="text-right font-bold">${formatNumber(s.spi, 3)}</td>
+        <td class="text-right font-bold">${formatNumber(s.cpi, 3)}</td>
+      </tr>
+    `).join('');
+
+    const latestSnap = query.data?.[0];
+    const summaryHeader = latestSnap ? `
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; margin-bottom: 16px; display: flex; justify-content: space-around;">
+        <div><strong>Current SPI:</strong> ${formatNumber(latestSnap.spi, 3)}</div>
+        <div><strong>Current CPI:</strong> ${formatNumber(latestSnap.cpi, 3)}</div>
+        <div><strong>Budget at Completion (BAC):</strong> ${formatMoney(latestSnap.bac, currency)}</div>
+      </div>
+    ` : '';
+
+    const tableHtml = `
+      ${summaryHeader}
+      <table>
+        <thead>
+          <tr>
+            <th>Snapshot Date</th>
+            <th class="text-right">Planned Value (PV)</th>
+            <th class="text-right">Earned Value (EV)</th>
+            <th class="text-right">Actual Cost (AC)</th>
+            <th class="text-right">SPI</th>
+            <th class="text-right">CPI</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    `;
+
+    printPdfReport('Earned Value Management (EVM) Report', `Project ID: ${id}`, tableHtml);
+  }
+
   return (
     <div>
-      <PageHeader
-        title={t('earnedValue')}
-        subtitle="PV / EV / AC snapshots with SPI & CPI"
-        actions={
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <PageHeader
+          title={t('earnedValue')}
+          subtitle="PV / EV / AC snapshots with SPI & CPI performance curves"
+        />
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            className="te-btn-primary"
+            onClick={handleExportCsv}
+            disabled={!query.data?.length}
+            className="te-btn-secondary text-xs flex items-center gap-1.5"
+          >
+            📊 Export CSV
+          </button>
+          <button
+            type="button"
+            onClick={handlePrintPdf}
+            disabled={!query.data?.length}
+            className="te-btn-secondary text-xs flex items-center gap-1.5"
+          >
+            📄 Print PDF Report
+          </button>
+          <button
+            type="button"
+            className="te-btn-primary text-xs"
             disabled={refreshMutation.isPending}
             onClick={() => refreshMutation.mutate()}
           >
-            {refreshMutation.isPending ? 'Refreshing…' : t('refreshSnapshot')}
+            {refreshMutation.isPending ? 'Refreshing…' : `⚡ ${t('refreshSnapshot')}`}
           </button>
-        }
-      />
+        </div>
+      </div>
       <ProjectNav projectId={id} />
 
       <p className="mb-4 text-sm text-slate-400">{t('evDerivedHint')}</p>
