@@ -1,0 +1,43 @@
+# Only middleware in prod-apps may reach upstream engines in prod-upstream.
+# Browsers / web-ui / mobile must never talk to cost-core or pm-core directly.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-middleware-to-upstream
+  namespace: prod-upstream
+  labels:
+    app.kubernetes.io/part-of: target-enterprise
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - cost-core
+          - pm-core
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: prod-apps
+          podSelector:
+            matchLabels:
+              app: const-middleware
+      ports:
+        - protocol: TCP
+          port: 8069
+        - protocol: TCP
+          port: 8080
+---
+# Deny all other ingress to upstream by default (explicit deny companion)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress-upstream
+  namespace: prod-upstream
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

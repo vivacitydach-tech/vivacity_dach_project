@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+:root {
+  --background: #020617; /* slate-950 */
+  --foreground: #f1f5f9; /* slate-100 */
+  --panel: rgba(15, 23, 42, 0.6); /* slate-900/60 */
+  --border: #1e293b; /* slate-800 */
+  --muted: #94a3b8; /* slate-400 */
+  --brand: #22c55e;
+  --brand-dark: #16a34a;
+  --selection: #22c55e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--selection) 35%, transparent);
+  color: #ecfdf5;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+}
+
+.font-mono,
+code,
+kbd,
+samp {
+  font-family: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Shared dark form controls */
+.te-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #334155; /* slate-700 */
+  background: #0f172a; /* slate-900 */
+  padding: 0.5rem 0.75rem;
+  color: #f1f5f9;
+  outline: none;
+}
+
+.te-input:focus {
+  border-color: #22c55e;
+}
+
+.te-label {
+  margin-bottom: 0.25rem;
+  display: block;
+  font-size: 0.875rem;
+  color: #cbd5e1; /* slate-300 */
+}
+
+.te-panel {
+  border-radius: 1rem; /* rounded-2xl */
+  border: 1px solid #1e293b; /* slate-800 */
+  background: rgba(15, 23, 42, 0.6); /* slate-900/60 */
+}
+
+.te-btn-primary {
+  border-radius: 0.5rem;
+  background: #16a34a; /* emerald-600 */
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  transition: background 0.15s ease;
+}
+
+.te-btn-primary:hover {
+  background: #22c55e; /* emerald-500 */
+}
+
+.te-btn-primary:disabled {
+  opacity: 0.6;
+}
+
+.te-btn-secondary {
+  border-radius: 0.5rem;
+  border: 1px solid #334155; /* slate-700 */
+  background: #1e293b; /* slate-800 */
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  transition: background 0.15s ease;
+}
+
+.te-btn-secondary:hover {
+  background: #334155;
+}
+
+/* Interactive Gantt (frappe) dark theme + baseline cue */
+.gantt-host .gantt {
+  background: #0f172a;
+}
+.gantt-host .gantt .grid-background {
+  fill: #020617;
+}
+.gantt-host .gantt .grid-header {
+  fill: #0f172a;
+  stroke: #1e293b;
+}
+.gantt-host .gantt .grid-row {
+  fill: #0f172a;
+}
+.gantt-host .gantt .row-line {
+  stroke: #1e293b;
+}
+.gantt-host .gantt .tick {
+  stroke: #334155;
+}
+.gantt-host .gantt .today-highlight {
+  fill: rgba(34, 197, 94, 0.08);
+}
+.gantt-host .gantt .bar-wrapper .bar {
+  fill: #059669;
+}
+.gantt-host .gantt .bar-wrapper .bar-progress {
+  fill: #22c55e;
+}
+.gantt-host .gantt .bar-label {
+  fill: #e2e8f0;
+}
+.gantt-host .gantt .bar-wrapper.has-baseline .bar {
+  stroke: #34d399;
+  stroke-width: 2;
+}
+.gantt-host .gantt .bar-wrapper.baseline .bar {
+  fill: #64748b;
+  opacity: 0.45;
+  stroke: #94a3b8;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.gantt-host .gantt .bar-wrapper.baseline .bar-progress {
+  fill: transparent;
+}
+.gantt-host .gantt .bar-wrapper.baseline .bar-label {
+  fill: #94a3b8;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.gantt-host .gantt .bar-wrapper.baseline {
+  pointer-events: none;
+}

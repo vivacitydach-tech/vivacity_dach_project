@@ -1,0 +1,151 @@
+# Target Enterprise — upstream engines & supporting infra
+#
+# PROFILES (do not run local-engines + official on the same host ports at once):
+#
+#   local-engines  — use the Node stand-ins in ../cost-core and ../pm-core
+#                    (start via: ..\scripts\start-engines.ps1)
+#                    This compose file only brings up redis / minio / postgres.
+#
+#   official       — Docker images that BIND the same ports as local engines:
+#                      openproject/openproject          → host 8080  (REPLACES local pm-core)
+#                      openconstructionerp              → host 8069  (REPLACES local cost-core)
+#                    Stop local-engines processes before starting this profile.
+#
+#   monitoring     — Prometheus (:9090) + Grafana (:3003); safe to combine with either.
+#
+# Examples:
+#   docker compose --profile local-engines up -d
+#   docker compose --profile official up -d
+#   docker compose --profile monitoring up -d
+#
+# Middleware (.env):
+#   UPSTREAM_MODE=http
+#   COST_CORE_BASE_URL=http://127.0.0.1:8069
+#   PM_CORE_BASE_URL=http://127.0.0.1:8080
+#
+# Monitoring (pinned tags; Grafana on 3003 avoids Next.js on 3001):
+#   Prometheus → http://localhost:9090
+#   Grafana    → http://localhost:3003
+#
+# Docker Compose is the laptop substitute for K8s/Helm until a real cluster exists.
+# See README.md, k8s/, helm/, terraform/.
+
+services:
+  # ── shared support (both profiles) ─────────────────────────────────────────
+  redis:
+    image: redis:7
+    profiles: ["local-engines", "official"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio
+    profiles: ["local-engines", "official"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    profiles: ["local-engines", "official"]
+    environment:
+      POSTGRES_USER: target
+      POSTGRES_PASSWORD: target
+      POSTGRES_DB: target_enterprise
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # ── official profile: real vendor engines (port conflict with local) ───────
+  # NOTE: Official OpenProject on host port 8080 replaces the local pm-core
+  # stand-in. Stop `npm run start` / start-engines.ps1 for pm-core first.
+  openproject:
+    image: openproject/openproject:14-slim
+    profiles: ["official"]
+    environment:
+      OPENPROJECT_SECRET_KEY_BASE: "change-me-openproject-secret"
+      OPENPROJECT_HOST__NAME: "localhost:8080"
+      OPENPROJECT_HTTPS: "false"
+      DATABASE_URL: "postgres://target:target@postgres:5432/openproject"
+      # Extra DB created on first boot may need a one-time create; or reuse target_enterprise
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - openproject_data:/var/openproject/assets
+    restart: unless-stopped
+
+  # Official OpenConstructionERP-style cost engine on 8069.
+  # NOTE: Replaces local cost-core stand-in — stop local process on 8069 first.
+  openconstructionerp:
+    image: ghcr.io/datadrivenconstruction/openconstructionerp:latest
+    profiles: ["official"]
+    ports:
+      - "8069:8069"
+    environment:
+      # Adjust to image docs as needed; placeholders for local trial.
+      DATABASE_URL: "postgres://target:target@postgres:5432/cost_core"
+      REDIS_URL: "redis://redis:6379"
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    restart: unless-stopped
+
+  # ── monitoring profile: Prometheus + Grafana (local stand-in) ──────────────
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    profiles: ["monitoring"]
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    profiles: ["monitoring"]
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_HTTP_PORT: "3000"
+    ports:
+      - "3003:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  minio_data:
+  postgres_data:
+  openproject_data:
+  prometheus_data:
+  grafana_data:

@@ -1,0 +1,90 @@
+@import 'tailwindcss';
+
+:root {
+  --te-emerald-50: #ecfdf5;
+  --te-emerald-100: #d1fae5;
+  --te-emerald-500: #10b981;
+  --te-emerald-600: #059669;
+  --te-emerald-700: #047857;
+  --te-emerald-900: #064e3b;
+  --te-ink: #0f172a;
+  --te-muted: #64748b;
+  --te-surface: #ffffff;
+  --te-border: #a7f3d0;
+  font-family: 'Segoe UI', 'Helvetica Neue', system-ui, sans-serif;
+  color: var(--te-ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #a7f3d0 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #6ee7b7 0%, transparent 45%),
+    linear-gradient(180deg, #ecfdf5 0%, #f0fdf4 40%, #ffffff 100%);
+  min-height: 100%;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.te-card {
+  background: color-mix(in srgb, white 88%, #ecfdf5);
+  border: 1px solid var(--te-border);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(4, 120, 87, 0.08);
+}
+
+.te-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.te-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.te-btn-primary {
+  background: linear-gradient(135deg, var(--te-emerald-600), var(--te-emerald-700));
+  color: white;
+}
+
+.te-btn-secondary {
+  background: white;
+  color: var(--te-emerald-700);
+  border: 1px solid var(--te-border);
+}
+
+.te-input {
+  width: 100%;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  background: white;
+}
+
+.te-input:focus {
+  outline: 2px solid #6ee7b7;
+  outline-offset: 1px;
+}

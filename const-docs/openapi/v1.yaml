@@ -1,0 +1,491 @@
+openapi: 3.1.0
+info:
+  title: Target Enterprise Middleware API
+  description: |
+    Branded `/v1` API for the Enterprise Construction Platform.
+    Paths match Nest controllers under `const-middleware` (global prefix `v1`).
+    Customers never call upstream cost-core / pm-core directly.
+  version: 1.0.0
+  contact:
+    name: Target Enterprise
+
+servers:
+  - url: http://localhost:3000/v1
+    description: Local Nest middleware
+
+tags:
+  - name: health
+  - name: auth
+  - name: projects
+  - name: boq
+  - name: schedule
+  - name: issues
+  - name: documents
+  - name: evm
+
+paths:
+  /health:
+    get:
+      tags: [health]
+      summary: Health and upstream adapter status
+      operationId: getHealth
+      security: []
+      responses:
+        "200":
+          description: Service OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  service:
+                    type: string
+                    example: const-middleware
+                  upstream:
+                    type: object
+                    properties:
+                      mode:
+                        type: string
+                        example: http
+                      cost_core:
+                        type: string
+                        enum: [up, down]
+                      pm_core:
+                        type: string
+                        enum: [up, down]
+                      cost_core_configured:
+                        type: boolean
+                      pm_core_configured:
+                        type: boolean
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Login
+      operationId: authLogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Access token (+ refresh cookie)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Refresh access token
+      operationId: authRefresh
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: New tokens
+        "401":
+          description: Invalid refresh token
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Logout / revoke refresh
+      operationId: authLogout
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: Logged out
+
+  /projects:
+    get:
+      tags: [projects]
+      summary: List projects for tenant
+      operationId: listProjects
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+      responses:
+        "200":
+          description: Project list
+    post:
+      tags: [projects]
+      summary: Create project (provisions upstream)
+      operationId: createProject
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProject"
+      responses:
+        "201":
+          description: Created
+        "200":
+          description: Created (implementation may return 200)
+
+  /projects/{id}:
+    get:
+      tags: [projects]
+      summary: Get project
+      operationId: getProject
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Project
+        "404":
+          description: Not found
+    patch:
+      tags: [projects]
+      summary: Update project
+      operationId: updateProject
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProject"
+      responses:
+        "200":
+          description: Updated
+    delete:
+      tags: [projects]
+      summary: Delete project
+      operationId: deleteProject
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Deleted
+
+  /projects/{projectId}/boq:
+    get:
+      tags: [boq]
+      summary: BOQ tree (unit rates may be masked by role)
+      operationId: getBoqTree
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+      responses:
+        "200":
+          description: BOQ tree
+
+  /projects/{projectId}/boq/{itemId}:
+    patch:
+      tags: [boq]
+      summary: Patch BOQ item
+      operationId: patchBoqItem
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchBoqItem"
+      responses:
+        "200":
+          description: Updated item
+
+  /projects/{projectId}/activities:
+    get:
+      tags: [schedule]
+      summary: List schedule activities
+      operationId: listActivities
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+      responses:
+        "200":
+          description: Activities
+    post:
+      tags: [schedule]
+      summary: Create activity
+      operationId: createActivity
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Created
+
+  /projects/{projectId}/activities/{activityId}:
+    patch:
+      tags: [schedule]
+      summary: Update activity
+      operationId: updateActivity
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+        - name: activityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Updated
+
+  /projects/{projectId}/issues:
+    get:
+      tags: [issues]
+      summary: List issues / snags
+      operationId: listIssues
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+      responses:
+        "200":
+          description: Issues
+    post:
+      tags: [issues]
+      summary: Create issue
+      operationId: createIssue
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIssue"
+      responses:
+        "200":
+          description: Created
+
+  /projects/{projectId}/documents/presign:
+    post:
+      tags: [documents]
+      summary: Presign upload URL
+      operationId: presignDocument
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignDocument"
+      responses:
+        "200":
+          description: Presigned PUT + document id
+
+  /projects/{projectId}/documents/{documentId}/complete:
+    post:
+      tags: [documents]
+      summary: Complete upload (sha256 + size)
+      operationId: completeDocument
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteDocument"
+      responses:
+        "200":
+          description: Document finalized
+
+  /projects/{projectId}/evm:
+    get:
+      tags: [evm]
+      summary: EVM report (SPI / CPI)
+      operationId: getEvmReport
+      parameters:
+        - $ref: "#/components/parameters/XCompanyId"
+        - $ref: "#/components/parameters/ProjectIdPath"
+      responses:
+        "200":
+          description: Earned value metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                description: Includes SPI, CPI, and related EVM fields
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    XCompanyId:
+      name: X-Company-Id
+      in: header
+      required: true
+      description: Tenant company UUID
+      schema:
+        type: string
+        format: uuid
+        example: 00000000-0000-4000-8000-000000000001
+    ProjectId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectIdPath:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        user:
+          type: object
+          additionalProperties: true
+    CreateProject:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 64
+    UpdateProject:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        code:
+          type: string
+          maxLength: 64
+    PatchBoqItem:
+      type: object
+      properties:
+        name:
+          type: string
+        unit:
+          type: string
+        quantity:
+          type: number
+        unit_price:
+          type: number
+    CreateIssue:
+      type: object
+      required: [type, title]
+      properties:
+        type:
+          type: string
+        priority:
+          type: string
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        location:
+          type: string
+          maxLength: 255
+    PresignDocument:
+      type: object
+      required: [doc_type, file_name]
+      properties:
+        doc_type:
+          type: string
+        file_name:
+          type: string
+          maxLength: 255
+        mime_type:
+          type: string
+          maxLength: 128
+    CompleteDocument:
+      type: object
+      required: [sha256, size_bytes]
+      properties:
+        sha256:
+          type: string
+          maxLength: 64
+        size_bytes:
+          type: integer
+          minimum: 0
+
+security:
+  - bearerAuth: []

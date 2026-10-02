@@ -1,0 +1,38 @@
+# Ingress stub — replace hosts / TLS secrets for your cluster ingress controller.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: target-enterprise
+  namespace: prod-apps
+  annotations:
+    # Example NGINX / cert-manager annotations (controller-specific)
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - app.target.example
+        - api.target.example
+      secretName: target-enterprise-tls
+  rules:
+    - host: app.target.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: const-web-ui
+                port:
+                  number: 80
+    - host: api.target.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: const-middleware
+                port:
+                  number: 80

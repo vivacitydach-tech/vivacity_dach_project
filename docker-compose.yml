@@ -1,0 +1,158 @@
+# Target Enterprise — full platform Docker Compose
+#
+# Usage (from repo root):
+#   docker compose --env-file .env.docker up -d --build
+#
+# URLs (host):
+#   Portal     http://localhost:3001
+#   API        http://localhost:3000/v1
+#   Field PWA  http://localhost:3002
+#   Cost-core  http://127.0.0.1:8069  (private / local only)
+#   PM-core    http://127.0.0.1:8080  (private / local only)
+#   MinIO      http://localhost:9000  (console :9001)
+#   Redis      localhost:6379
+#   MySQL      localhost:3307
+#
+# Profiles:
+#   (default)  mysql + redis + api + web + mobile + cost-core + pm-core
+#   storage    adds MinIO (optional; API uses local uploads by default)
+#   gateway    adds Nginx reverse proxy on :80
+#   official   swaps stand-ins for vendor images (see const-infra)
+#
+# Stop local Node/XAMPP processes on 3000/3001/8069/8080 before starting.
+
+name: target-enterprise
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-middleware_prod}
+      MYSQL_USER: ${MYSQL_USER:-target}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-targetpass}
+    ports:
+      - "${MYSQL_HOST_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+
+  minio:
+    profiles: ["storage"]
+    build:
+      context: ./const-infra/minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+
+  cost-core:
+    build:
+      context: ./cost-core
+    restart: unless-stopped
+    environment:
+      PORT: "8069"
+    ports:
+      - "8069:8069"
+
+  pm-core:
+    build:
+      context: ./pm-core
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+
+  api:
+    build:
+      context: ./const-middleware
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      cost-core:
+        condition: service_started
+      pm-core:
+        condition: service_started
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      DATABASE_URL: mysql://${MYSQL_USER:-target}:${MYSQL_PASSWORD:-targetpass}@mysql:3306/${MYSQL_DATABASE:-middleware_prod}
+      JWT_SECRET: ${JWT_SECRET:-target-enterprise-docker-secret-change-me}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-7d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001,http://localhost:3002,http://localhost}
+      UPLOAD_DIR: /app/uploads
+      RUN_SEED: ${RUN_SEED:-true}
+      UPSTREAM_MODE: ${UPSTREAM_MODE:-http}
+      COST_CORE_BASE_URL: ${COST_CORE_BASE_URL:-http://cost-core:8069}
+      PM_CORE_BASE_URL: ${PM_CORE_BASE_URL:-http://pm-core:8080}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+    ports:
+      - "${API_HOST_PORT:-3000}:3000"
+    volumes:
+      - api_uploads:/app/uploads
+
+  web:
+    build:
+      context: ./const-web-ui
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/v1}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      PORT: "3001"
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/v1}
+    ports:
+      - "${WEB_HOST_PORT:-3001}:3001"
+
+  mobile:
+    build:
+      context: ./const-mobile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/v1}
+    restart: unless-stopped
+    ports:
+      - "${MOBILE_HOST_PORT:-3002}:80"
+
+  gateway:
+    image: nginx:1.27-alpine
+    profiles: ["gateway"]
+    restart: unless-stopped
+    depends_on:
+      - api
+      - web
+      - mobile
+    ports:
+      - "${GATEWAY_HOST_PORT:-80}:80"
+    volumes:
+      - ./const-infra/nginx/gateway.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  mysql_data:
+  redis_data:
+  minio_data:
+  api_uploads:

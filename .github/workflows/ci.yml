@@ -1,0 +1,80 @@
+name: CI/CD Pipeline - Docker & Platform Validation
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  docker-smoke-test:
+    name: Build & Validate Full Docker Stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure Environment
+        run: |
+          cp .env.docker.example .env.docker
+          sed -i 's/GATEWAY_HOST_PORT=80/GATEWAY_HOST_PORT=8088/g' .env.docker || true
+
+      - name: Build All Docker Images
+        run: |
+          docker compose --env-file .env.docker --profile gateway build
+
+      - name: Launch Full Platform Stack
+        run: |
+          docker compose --env-file .env.docker --profile gateway up -d
+
+      - name: Wait for Services to be Ready
+        run: |
+          echo "Waiting for services to become healthy..."
+          for i in {1..40}; do
+            if curl -s http://localhost:3000/v1/health | grep -q '"status":"ok"'; then
+              echo "API is healthy!"
+              break
+            fi
+            echo "Waiting ($i/40)..."
+            sleep 3
+          done
+
+      - name: Verify Endpoints & Smoke Tests
+        run: |
+          echo "=== 1. Checking API Health ==="
+          curl -fail -s http://localhost:3000/v1/health || exit 1
+
+          echo "=== 2. Checking OpenAPI Spec ==="
+          curl -fail -s http://localhost:3000/v1/openapi.yaml | grep -q "Target Enterprise" || exit 1
+
+          echo "=== 3. Checking Scalar API Docs ==="
+          curl -fail -s http://localhost:3000/v1/docs | grep -q "api-reference" || exit 1
+
+          echo "=== 4. Checking Web Portal ==="
+          curl -fail -sI http://localhost:3001 | grep -q "200 OK" || exit 1
+
+          echo "=== 5. Checking Field PWA ==="
+          curl -fail -sI http://localhost:3002 | grep -q "200 OK" || exit 1
+
+          echo "=== 6. Checking Nginx Gateway ==="
+          curl -fail -s http://localhost:8088/v1/health | grep -q '"status":"ok"' || exit 1
+
+      - name: Inspect Container Logs on Failure
+        if: failure()
+        run: |
+          echo "=== Container Status ==="
+          docker compose --env-file .env.docker ps -a
+          echo "=== API Logs ==="
+          docker compose --env-file .env.docker logs --tail 100 api
+          echo "=== MySQL Logs ==="
+          docker compose --env-file .env.docker logs --tail 100 mysql
+
+      - name: Shutdown Stack
+        if: always()
+        run: |
+          docker compose --env-file .env.docker down -v

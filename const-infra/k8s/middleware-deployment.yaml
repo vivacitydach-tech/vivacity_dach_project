@@ -1,0 +1,71 @@
+# Middleware — NestJS /v1 API
+# Image tag pinned; replace registry when CI publishes builds.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: const-middleware
+  namespace: prod-apps
+  labels:
+    app: const-middleware
+    tier: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: const-middleware
+  template:
+    metadata:
+      labels:
+        app: const-middleware
+        tier: api
+    spec:
+      containers:
+        - name: middleware
+          image: ghcr.io/target-enterprise/const-middleware:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: UPSTREAM_MODE
+              value: http
+            - name: COST_CORE_BASE_URL
+              value: http://cost-core.prod-upstream.svc.cluster.local:8069
+            - name: PM_CORE_BASE_URL
+              value: http://pm-core.prod-upstream.svc.cluster.local:8080
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: const-middleware
+  namespace: prod-apps
+  labels:
+    app: const-middleware
+spec:
+  selector:
+    app: const-middleware
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

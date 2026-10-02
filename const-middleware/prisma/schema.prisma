@@ -1,0 +1,545 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  admin
+  project_manager
+  site_manager
+  subcontractor
+  client
+}
+
+enum ProjectStatus {
+  draft
+  provisioning
+  provisioning_failed
+  active
+  on_hold
+  completed
+  archived
+}
+
+enum IssueType {
+  defect
+  rfi
+  observation
+  safety
+  change_request
+  snag
+  design
+  inspection
+}
+
+enum IssuePriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum IssueStatus {
+  open
+  in_progress
+  pending_sync
+  resolved
+  closed
+}
+
+enum SyncStatus {
+  pending
+  processing
+  succeeded
+  failed
+  dead
+}
+
+enum DocType {
+  drawing
+  photo
+  report
+  contract
+  other
+  protocol
+  abnahme
+  site_photo
+  boq_export
+}
+
+enum DependencyType {
+  FS
+  SS
+  FF
+  SF
+}
+
+enum ChangeOrderStatus {
+  draft
+  submitted
+  approved
+  rejected
+  implemented
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  country   String   @db.VarChar(2)
+  currency  String   @db.VarChar(3)
+  timezone  String   @default("Europe/Berlin") @db.VarChar(64)
+  locale    String   @default("en") @db.VarChar(5)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships Membership[]
+  projects    Project[]
+  auditEvents AuditEvent[]
+  unitRates   UnitRate[]
+
+  @@map("companies")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash")
+  name         String   @db.VarChar(255)
+  locale       String   @default("en") @db.VarChar(5)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  memberships     Membership[]
+  projectMembers  ProjectMember[]
+  issuesCreated   Issue[]         @relation("IssueCreator")
+  documents       Document[]
+  auditEvents     AuditEvent[]
+  refreshTokens   RefreshToken[]
+  siteDiaries     SiteDiary[]
+  signatures      Signature[]
+  checklists      Checklist[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash") @db.VarChar(255)
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
+
+model Membership {
+  id        String         @id @default(uuid())
+  companyId String         @map("company_id")
+  userId    String         @map("user_id")
+  role      MembershipRole
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model UnitRate {
+  id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  code        String   @db.VarChar(64)
+  description String   @db.VarChar(255)
+  unit        String   @db.VarChar(32)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(18, 4)
+  currency    String   @db.VarChar(3)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@map("unit_rates")
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  companyId    String        @map("company_id")
+  name         String        @db.VarChar(255)
+  code         String?       @db.VarChar(64)
+  status       ProjectStatus @default(draft)
+  erpProjectId String?       @map("erp_project_id") @db.VarChar(128)
+  pmProjectId  String?       @map("pm_project_id") @db.VarChar(128)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  company          Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  members          ProjectMember[]
+  boqItems         BoqItem[]
+  activities       Activity[]
+  activityDeps     ActivityDependency[]
+  issues           Issue[]
+  documents        Document[]
+  documentLinks    DocumentLink[]
+  evmSnapshots     EvmSnapshot[]
+  externalMappings ExternalMapping[]
+  syncJobs         SyncJob[]
+  changeOrders     ChangeOrder[]
+  siteDiaries      SiteDiary[]
+  checklists       Checklist[]
+  bcfTopics        BcfTopic[]
+
+  @@index([companyId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String         @id @default(uuid())
+  projectId String         @map("project_id")
+  userId    String         @map("user_id")
+  role      MembershipRole
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+model BoqItem {
+  id         String   @id @default(uuid())
+  projectId  String   @map("project_id")
+  parentId   String?  @map("parent_id")
+  code       String   @db.VarChar(64)
+  name       String   @db.VarChar(255)
+  unit       String?  @db.VarChar(32)
+  quantity   Decimal  @default(0) @db.Decimal(18, 4)
+  unitPrice  Decimal  @default(0) @map("unit_price") @db.Decimal(18, 4)
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent       BoqItem?      @relation("BoqTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     BoqItem[]     @relation("BoqTree")
+  changeOrders ChangeOrder[]
+
+  @@index([projectId])
+  @@index([parentId])
+  @@map("boq_items")
+}
+
+model ChangeOrder {
+  id          String            @id @default(uuid())
+  projectId   String            @map("project_id")
+  issueId     String?           @map("issue_id")
+  boqItemId   String?           @map("boq_item_id")
+  title       String            @db.VarChar(255)
+  description String?           @db.Text
+  status      ChangeOrderStatus @default(draft)
+  deltaCost   Decimal           @default(0) @map("delta_cost") @db.Decimal(18, 4)
+  deltaDays   Decimal           @default(0) @map("delta_days") @db.Decimal(10, 2)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issue   Issue?   @relation(fields: [issueId], references: [id], onDelete: SetNull)
+  boqItem BoqItem? @relation(fields: [boqItemId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([issueId])
+  @@index([boqItemId])
+  @@map("change_orders")
+}
+
+model Activity {
+  id              String    @id @default(uuid())
+  projectId       String    @map("project_id")
+  code            String    @db.VarChar(64)
+  name            String    @db.VarChar(255)
+  startDate       DateTime? @map("start_date") @db.Date
+  endDate         DateTime? @map("end_date") @db.Date
+  baselineStart   DateTime? @map("baseline_start") @db.Date
+  baselineEnd     DateTime? @map("baseline_end") @db.Date
+  actualStart     DateTime? @map("actual_start") @db.Date
+  actualEnd       DateTime? @map("actual_end") @db.Date
+  percentComplete Decimal   @default(0) @map("percent_complete") @db.Decimal(5, 2)
+  pv              Decimal   @default(0) @db.Decimal(18, 4)
+  ev              Decimal   @default(0) @db.Decimal(18, 4)
+  ac              Decimal   @default(0) @db.Decimal(18, 4)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  project      Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  predecessors ActivityDependency[]  @relation("DepSuccessor")
+  successors   ActivityDependency[]  @relation("DepPredecessor")
+
+  @@index([projectId])
+  @@map("activities")
+}
+
+model ActivityDependency {
+  id            String         @id @default(uuid())
+  projectId     String         @map("project_id")
+  predecessorId String         @map("predecessor_id")
+  successorId   String         @map("successor_id")
+  type          DependencyType @default(FS)
+  lagDays       Int            @default(0) @map("lag_days")
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  predecessor Activity @relation("DepPredecessor", fields: [predecessorId], references: [id], onDelete: Cascade)
+  successor   Activity @relation("DepSuccessor", fields: [successorId], references: [id], onDelete: Cascade)
+
+  @@unique([predecessorId, successorId, type])
+  @@index([projectId])
+  @@map("activity_dependencies")
+}
+
+model Issue {
+  id              String        @id @default(uuid())
+  projectId       String        @map("project_id")
+  createdById     String        @map("created_by_id")
+  type            IssueType
+  priority        IssuePriority @default(medium)
+  status          IssueStatus   @default(open)
+  title           String        @db.VarChar(255)
+  description     String?       @db.Text
+  location        String?       @db.VarChar(255)
+  bcfGuid         String?       @map("bcf_guid") @db.VarChar(64)
+  costImpact      Decimal?      @map("cost_impact") @db.Decimal(18, 4)
+  timeImpactDays  Decimal?      @map("time_impact_days") @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy    User          @relation("IssueCreator", fields: [createdById], references: [id])
+  changeOrders ChangeOrder[]
+  bcfTopics    BcfTopic[]
+
+  @@index([projectId])
+  @@index([createdById])
+  @@map("issues")
+}
+
+model BcfTopic {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  issueId     String?  @map("issue_id")
+  guid        String   @db.VarChar(64)
+  title       String   @db.VarChar(255)
+  topicType   String   @default("Issue") @map("topic_type") @db.VarChar(64)
+  status      String   @default("open") @db.VarChar(64)
+  priority    String   @default("normal") @db.VarChar(32)
+  description String?  @db.Text
+  comments    String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issue   Issue?  @relation(fields: [issueId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, guid])
+  @@index([projectId])
+  @@index([issueId])
+  @@map("bcf_topics")
+}
+
+model Document {
+  id           String    @id @default(uuid())
+  projectId    String    @map("project_id")
+  uploadedById String    @map("uploaded_by_id")
+  docType      DocType   @map("doc_type")
+  fileName     String    @map("file_name") @db.VarChar(255)
+  mimeType     String?   @map("mime_type") @db.VarChar(128)
+  storagePath  String?   @map("storage_path") @db.VarChar(512)
+  sha256       String?   @db.VarChar(64)
+  sizeBytes    BigInt?   @map("size_bytes")
+  latitude     Decimal?  @db.Decimal(10, 7)
+  longitude    Decimal?  @db.Decimal(10, 7)
+  completedAt  DateTime? @map("completed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy User           @relation(fields: [uploadedById], references: [id])
+  links      DocumentLink[]
+
+  @@index([projectId])
+  @@map("documents")
+}
+
+model DocumentLink {
+  id         String   @id @default(uuid())
+  documentId String   @map("document_id")
+  projectId  String   @map("project_id")
+  entityType String   @map("entity_type") @db.VarChar(64)
+  entityId   String   @map("entity_id") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([projectId, entityType, entityId])
+  @@map("document_links")
+}
+
+model SiteDiary {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  authorId  String   @map("author_id")
+  diaryDate DateTime @map("diary_date") @db.Date
+  weather   String?  @db.VarChar(128)
+  notes     String   @db.Text
+  latitude  Decimal? @db.Decimal(10, 7)
+  longitude Decimal? @db.Decimal(10, 7)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author  User    @relation(fields: [authorId], references: [id])
+
+  @@index([projectId, diaryDate])
+  @@map("site_diaries")
+}
+
+model Checklist {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  createdById String   @map("created_by_id")
+  templateKey String   @map("template_key") @db.VarChar(64)
+  title       String   @db.VarChar(255)
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User            @relation(fields: [createdById], references: [id])
+  items     ChecklistItem[]
+  signatures Signature[]
+
+  @@index([projectId])
+  @@map("checklists")
+}
+
+model ChecklistItem {
+  id          String   @id @default(uuid())
+  checklistId String   @map("checklist_id")
+  label       String   @db.VarChar(255)
+  checked     Boolean  @default(false)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  checklist Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId])
+  @@map("checklist_items")
+}
+
+model Signature {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  entityType String   @map("entity_type") @db.VarChar(64)
+  entityId   String   @map("entity_id") @db.VarChar(64)
+  imageData  String   @map("image_data") @db.LongText
+  checklistId String? @map("checklist_id")
+  signedAt   DateTime @default(now()) @map("signed_at")
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checklist Checklist? @relation(fields: [checklistId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@map("signatures")
+}
+
+model EvmSnapshot {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  asOfDate  DateTime @map("as_of_date") @db.Date
+  pv        Decimal  @db.Decimal(18, 4)
+  ev        Decimal  @db.Decimal(18, 4)
+  ac        Decimal  @db.Decimal(18, 4)
+  bac       Decimal  @db.Decimal(18, 4)
+  spi       Decimal? @db.Decimal(10, 4)
+  cpi       Decimal? @db.Decimal(10, 4)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, asOfDate])
+  @@map("evm_snapshots")
+}
+
+model ExternalMapping {
+  id         String   @id @default(uuid())
+  projectId  String   @map("project_id")
+  system     String   @db.VarChar(64)
+  entityType String   @map("entity_type") @db.VarChar(64)
+  localId    String   @map("local_id") @db.VarChar(64)
+  externalId String   @map("external_id") @db.VarChar(128)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, system, entityType, localId])
+  @@index([system, externalId])
+  @@map("external_mappings")
+}
+
+model SyncJob {
+  id          String     @id @default(uuid())
+  projectId   String?    @map("project_id")
+  companyId   String?    @map("company_id")
+  jobType     String     @map("job_type") @db.VarChar(64)
+  payload     Json
+  status      SyncStatus @default(pending)
+  attempts    Int        @default(0)
+  lastError   String?    @map("last_error") @db.Text
+  availableAt DateTime   @default(now()) @map("available_at")
+  processedAt DateTime?  @map("processed_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([status, availableAt])
+  @@index([projectId])
+  @@map("sync_jobs")
+}
+
+model AuditEvent {
+  id         String   @id @default(uuid())
+  companyId  String?  @map("company_id")
+  userId     String?  @map("user_id")
+  action     String   @db.VarChar(128)
+  entityType String   @map("entity_type") @db.VarChar(64)
+  entityId   String?  @map("entity_id") @db.VarChar(64)
+  metadata   Json?
+  ipAddress  String?  @map("ip_address") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  company Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_events")
+}

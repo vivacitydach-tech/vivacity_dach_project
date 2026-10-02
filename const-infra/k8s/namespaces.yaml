@@ -1,0 +1,19 @@
+# Production namespaces — apply when a real cluster exists.
+# Local substitute: Docker Compose profiles in ../docker-compose.yml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-apps
+  labels:
+    app.kubernetes.io/part-of: target-enterprise
+    environment: production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-upstream
+  labels:
+    app.kubernetes.io/part-of: target-enterprise
+    environment: production
+    # Upstream ERP/PM only — never exposed to browsers
+    tier: upstream

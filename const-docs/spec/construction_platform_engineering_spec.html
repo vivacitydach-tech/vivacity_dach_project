@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engineering Specification — Enterprise Construction Management Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .print-break-inside-avoid { break-inside: avoid; }
+      pre { white-space: pre-wrap !important; word-break: break-all !important; font-size: 10px !important; }
+    }
+    pre code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-500 selection:text-slate-950">
+
+  <!-- Top Global Header -->
+  <header class="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md px-4 sm:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="h-8 w-8 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-slate-950 shadow-lg shadow-emerald-500/20">
+        <svg class="w-5 h-5 text-slate-950" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-sm font-semibold tracking-wide text-white uppercase">Technical Specification</h1>
+        <p class="text-xs text-slate-400">Enterprise Construction Platform &bull; v1.0.0 Target Spec</p>
+      </div>
+    </div>
+
+    <!-- Action Tools -->
+    <div class="flex items-center gap-2.5 no-print">
+      <button onclick="downloadSelfHTML()" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md bg-emerald-600 hover:bg-emerald-500 text-white transition-colors shadow-sm shadow-emerald-600/30">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Download HTML
+      </button>
+      <button onclick="window.print()" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        Print / PDF
+      </button>
+    </div>
+  </header>
+
+  <div class="max-w-[1600px] mx-auto flex flex-col lg:flex-row px-4 sm:px-6 lg:px-8 py-8 gap-8">
+    
+    <!-- Table of Contents Sidebar -->
+    <aside class="w-full lg:w-72 shrink-0 no-print">
+      <div class="sticky top-20 bg-slate-900/80 border border-slate-800 rounded-xl p-4 backdrop-blur-md max-h-[calc(100vh-6rem)] overflow-y-auto">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-2 flex items-center justify-between">
+          <span>Table of Contents</span>
+          <span class="text-[10px] bg-slate-800 text-emerald-400 px-1.5 py-0.5 rounded font-mono">15 SECTIONS</span>
+        </h2>
+        <nav class="space-y-1 text-xs">
+          <a href="#section-1" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">1. Product Objective</a>
+          <a href="#section-2" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">2. Repositories Structure</a>
+          <a href="#section-3" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">3. Target Architecture & Network</a>
+          <a href="#section-4" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">4. Upstream Installation Specs</a>
+          <a href="#section-5" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">5. Middleware Technology</a>
+          <a href="#section-6" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">6. Database Requirements & DDL</a>
+          <a href="#section-7" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">7. Auth, Security & RBAC</a>
+          <a href="#section-8" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">8. Integration Adapters & Circuit</a>
+          <a href="#section-9" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">9. Public REST API Contract</a>
+          <a href="#section-10" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">10. Core Workflows & Pipelines</a>
+          <a href="#section-11" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">11. Web & Mobile PWA Tech</a>
+          <a href="#section-12" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">12. Infrastructure & CI/CD</a>
+          <a href="#section-13" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">13. Observability & Telemetry</a>
+          <a href="#section-14" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">14. Testing & Verification Matrix</a>
+          <a href="#section-15" class="toc-link block px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-white transition">15. Definition of Done (DoD)</a>
+        </nav>
+
+        <div class="mt-4 pt-4 border-t border-slate-800/80 text-[11px] text-slate-500">
+          <p><span class="text-slate-400 font-semibold">Strict Rule:</span> Upstream engines remain strictly private. Client calls unified API only.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 min-w-0 space-y-12">
+
+      <section id="section-1" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 01</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Product Objective & Core Scope</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Mandatory MVP</span>
+        </div>
+
+        <p class="text-slate-300 text-sm leading-relaxed mb-6">
+          Build a branded, multi-company construction management platform unifying estimating, cost control, project scheduling, quality/defect tracking, BIM issue coordination, and field reporting into a single experience. Customers must interact exclusively with your brand's frontend, domain, and API.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <h3 class="text-sm font-semibold text-white mb-1.5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Estimating & BOQ
+            </h3>
+            <p class="text-xs text-slate-400">Hierarchical bill of quantities with high-precision decimal calculations, unit rate libraries, and change orders.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <h3 class="text-sm font-semibold text-white mb-1.5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> EVM & Cost Control
+            </h3>
+            <p class="text-xs text-slate-400">Automated Planned Value (PV), Earned Value (EV), Actual Cost (AC), and real-time SPI/CPI trend metrics.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <h3 class="text-sm font-semibold text-white mb-1.5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Project Management & Gantt
+            </h3>
+            <p class="text-xs text-slate-400">Interactive Gantt schedules, baseline tracking, activity dependencies, and progress reporting.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <h3 class="text-sm font-semibold text-white mb-1.5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Issues & BIM/BCF
+            </h3>
+            <p class="text-xs text-slate-400">Defects, RFIs, change requests, and snags integrated with OpenProject BIM and Open BIM BCF standards.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <h3 class="text-sm font-semibold text-white mb-1.5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Field Operations & PWA
+            </h3>
+            <p class="text-xs text-slate-400">Site diaries, geolocated photo uploads, checklists, digital signatures, and offline synchronization queues.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <h3 class="text-sm font-semibold text-white mb-1.5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Tenancy & Localization
+            </h3>
+            <p class="text-xs text-slate-400">Strict multi-company tenant isolation, English/German (DE/EN) language packs, and EUR/PKR currency formats.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-2" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 02</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Repository Structure & Boundaries</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">5 Core Repos</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-emerald-400 font-bold">const-middleware</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">NestJS modular monolith: Auth, Multi-Tenancy, BOQ Engine, EVM calculations, S3 upload coordinator, Upstream Adapters, and BullMQ background sync workers.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-blue-400 font-bold">const-web-ui</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">Next.js 14+ client portal: Pure branded interface, TanStack Query, Tailwind CSS, high-performance BOQ data grid, and interactive Gantt scheduling component.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-amber-400 font-bold">const-mobile</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">Offline-first field PWA: IndexedDB persistent queue, camera capture, digital signature pad, site diary entries, and push notification handlers.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-purple-400 font-bold">const-infra</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">Kubernetes manifests, Helm charts, Terraform IaC, Cloudflare edge configs, Prometheus/Grafana monitoring, and automated database backup runbooks.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 md:col-span-2">
+            <span class="text-rose-400 font-bold">const-docs</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">OpenAPI 3.1 specification exports, architectural diagrams, disaster-recovery runbooks, and <code>THIRD_PARTY.md</code> open-source license attribution registry.</p>
+          </div>
+        </div>
+
+        <div class="mt-4 p-3 bg-red-950/30 border border-red-800/40 rounded-lg text-xs text-red-300">
+          <strong>Upstream Isolation Rule:</strong> Keep <code>cost-core</code> (OpenConstructionERP) and <code>pm-core</code> (OpenProject Community/BIM) in their own private runtime environments. No direct browser-to-engine traffic or iframe embedding is ever permitted.
+        </div>
+      </section>
+
+      <section id="section-3" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 03</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Target Architecture & Network Topology</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">Air-Gapped Core</span>
+        </div>
+
+        <div class="relative bg-slate-950 rounded-xl p-5 border border-slate-800 font-mono text-xs overflow-x-auto">
+          <button onclick="copyCode(this)" class="absolute top-3 right-3 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px]">Copy</button>
+<pre><code class="text-slate-300">Internet
+   │
+   ├── https://app.yourbrand.com        (Customer Web App)
+   └── https://api.yourbrand.com/v1     (Unified Customer REST API)
+           │
+           ▼
+   [ Cloudflare Edge WAF / Rate Limiter ]
+           │ (Strict TLS 1.3 Termination)
+           ▼
+   [ Kubernetes Ingress-Nginx ]
+           │
+     ┌─────┴──────────────────────────────────────────────────────┐
+     │                     prod-apps Namespace                    │
+     │                                                            │
+     │  const-web-ui Pods (Port 80)                               │
+     │  const-middleware Pods (Port 3000)                         │
+     │      │                                                     │
+     │      ├── PostgreSQL 16 (DB: middleware_prod)               │
+     │      ├── Redis 7 / Valkey Cluster (Queues & Sessions)      │
+     │      └── S3 / MinIO Cluster (Object Storage)               │
+     │                                                            │
+     └─────┬──────────────────────────────────────────────────────┘
+           │ (Internal NetworkPolicy: Only const-middleware pods allowed)
+           ▼
+     ┌────────────────────────────────────────────────────────────┐
+     │                   prod-upstream Namespace                  │
+     │                                                            │
+     │  cost-core.internal:8069   (OpenConstructionERP Headless)  │
+     │  pm-core.internal:8080     (OpenProject Community/BIM)     │
+     │                                                            │
+     │  * NO Public IP / Ingress Rules Attached                   │
+     │  * Database and Redis ports locked to local pod loopback   │
+     └────────────────────────────────────────────────────────────┘</code></pre>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-lg">
+            <span class="text-rose-400 font-semibold">Strictly Prohibited From Public Exposure:</span>
+            <ul class="list-disc list-inside text-slate-400 mt-1 space-y-0.5">
+              <li>Upstream application URLs or admin panels</li>
+              <li>Upstream PostgreSQL or Redis direct connection ports</li>
+              <li>Upstream machine credentials, secrets, and bearer tokens</li>
+              <li>Internal DNS hostnames (<code>*.internal</code>) in HTTP responses</li>
+            </ul>
+          </div>
+          <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-lg">
+            <span class="text-emerald-400 font-semibold">Allowed Public Surface:</span>
+            <ul class="list-disc list-inside text-slate-400 mt-1 space-y-0.5">
+              <li><code>https://app.yourbrand.com</code> (Single Page App)</li>
+              <li><code>https://api.yourbrand.com/v1/*</code> (Unified REST API)</li>
+              <li>Direct presigned S3 object PUT and GET signed endpoints</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-4" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 04</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Upstream Engine Provisioning Specifications</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">Pinned Versions</span>
+        </div>
+
+        <div class="space-y-6 text-xs text-slate-300">
+          <!-- 4.1 Cost Core -->
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2 flex items-center justify-between">
+              <span>4.1. cost-core (OpenConstructionERP)</span>
+              <span class="font-mono text-[11px] text-emerald-400">DNS: cost-core.internal:8069</span>
+            </h3>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-400">
+              <li>Deploy with a <strong class="text-slate-200">pinned release tag or sha256 digest</strong>. Never use dynamic <code>latest</code> tags.</li>
+              <li>Run against an isolated PostgreSQL instance (<code>cost_core_db</code>). Do not share tables with middleware.</li>
+              <li>Disable all public Ingress controllers. Ingress is restricted via Kubernetes <code>NetworkPolicy</code> strictly to pods with label <code>app: const-middleware</code>.</li>
+              <li>Provision a dedicated machine service account: <code>svc_middleware_cost</code> with scoped API tokens stored in HashiCorp Vault / Sealed Secrets.</li>
+              <li>Verify full programmatic CRUD for Projects, Work Breakdown Structure (WBS), Bill of Quantities line items, and cost journal entries.</li>
+            </ul>
+          </div>
+
+          <!-- 4.2 PM Core -->
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2 flex items-center justify-between">
+              <span>4.2. pm-core (OpenProject Community/BIM Edition)</span>
+              <span class="font-mono text-[11px] text-blue-400">DNS: pm-core.internal:8080</span>
+            </h3>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-400">
+              <li>Deploy pinned release with standalone database (<code>pm_core_db</code>).</li>
+              <li>Configure <code>SECRET_KEY_BASE</code> securely via external secrets manager.</li>
+              <li>Enable <strong class="text-slate-200">OpenProject API v3</strong> and configure OAuth2 machine credentials or API keys for the middleware service account.</li>
+              <li>Activate the <strong class="text-slate-200">BCF module</strong> (Building Collaboration Format) for BIM issue management.</li>
+              <li>Seed standard Work Package types: <code>[ "Defect", "RFI", "Change Order", "Snag", "Safety", "Design", "Activity" ]</code>.</li>
+              <li>Seed standard statuses: <code>[ "Draft", "Submitted", "Under Review", "Approved", "Rejected", "Closed" ]</code>.</li>
+              <li>Configure custom fields: <code>cfield_bcf_guid</code>, <code>cfield_cost_impact</code>, <code>cfield_time_impact</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-5" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 05</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Middleware Architecture & Technology Stack</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">NestJS Monolith</span>
+        </div>
+
+        <p class="text-slate-300 text-xs leading-relaxed mb-4">
+          The middleware is constructed as a <strong class="text-white">modular monolith</strong> in TypeScript. Domain boundaries are strictly maintained so high-load modules (e.g., EVM or sync workers) can be extracted into microservices if scaling requirements demand.
+        </p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono text-[11px] mb-6">
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">Language</span>TypeScript 5.x</div>
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">Framework</span>NestJS 10.x</div>
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">Primary DB</span>PostgreSQL 16</div>
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">ORM</span>Prisma / TypeORM</div>
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">Queues</span>BullMQ + Redis 7</div>
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">API Contract</span>OpenAPI 3.1</div>
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">Crypto Auth</span>Argon2id + JWT</div>
+          <div class="p-2.5 rounded bg-slate-950 border border-slate-800 text-center"><span class="text-slate-400 block text-[9px] uppercase">Testing</span>Jest + Supertest</div>
+        </div>
+
+        <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Registered NestJS Modules (src/modules/*)</h4>
+        <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">auth</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">tenancy</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">companies</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">users</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">memberships</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">projects</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">boq</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">cost-control</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">issues</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">bcf</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">schedule</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">documents</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">reports</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">evm</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">integrations</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">sync</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">notifications</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">audit</span>
+          <span class="px-2 py-1 rounded bg-slate-800 text-emerald-300">health</span>
+        </div>
+      </section>
+
+      <section id="section-6" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 06</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Database Requirements & Complete DDL Schema</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">PostgreSQL 16</span>
+        </div>
+
+        <p class="text-xs text-slate-300 mb-4">
+          All monetary values and quantities use high-precision PostgreSQL decimal types (<code class="text-emerald-400">NUMERIC(18,2)</code> and <code class="text-emerald-400">NUMERIC(18,4)</code>). Standard IEEE-754 floating-point arithmetic is strictly forbidden for financial calculations.
+        </p>
+
+        <div class="relative bg-slate-950 rounded-xl p-5 border border-slate-800 font-mono text-xs overflow-x-auto max-h-[600px] overflow-y-auto">
+          <button onclick="copyCode(this)" class="sticky top-0 float-right px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] z-10">Copy SQL</button>
+<pre><code class="text-slate-300">-- Core Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- Enums
+CREATE TYPE membership_role AS ENUM ('admin', 'project_manager', 'site_manager', 'subcontractor', 'client');
+CREATE TYPE project_status AS ENUM ('provisioning', 'provisioning_failed', 'active', 'archived');
+CREATE TYPE issue_type AS ENUM ('defect', 'rfi', 'change', 'snag', 'safety', 'design', 'inspection');
+CREATE TYPE issue_priority AS ENUM ('low', 'medium', 'high', 'critical');
+CREATE TYPE issue_status AS ENUM ('draft', 'pending_sync', 'open', 'under_review', 'resolved', 'closed');
+CREATE TYPE sync_status AS ENUM ('pending', 'processing', 'completed', 'failed');
+CREATE TYPE doc_type AS ENUM ('drawing', 'protocol', 'abnahme', 'site_photo', 'boq_export', 'contract', 'other');
+
+-- 1. Companies (Tenants)
+CREATE TABLE companies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    legal_name VARCHAR(255) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+    country VARCHAR(2) NOT NULL,
+    default_currency VARCHAR(3) NOT NULL CHECK (default_currency IN ('EUR', 'PKR')),
+    timezone VARCHAR(64) NOT NULL DEFAULT 'UTC',
+    status VARCHAR(32) NOT NULL DEFAULT 'active',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 2. Users
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    phone VARCHAR(64),
+    locale VARCHAR(5) NOT NULL DEFAULT 'en' CHECK (locale IN ('en', 'de')),
+    mfa_secret VARCHAR(255),
+    mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    status VARCHAR(32) NOT NULL DEFAULT 'active',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 3. Memberships
+CREATE TABLE memberships (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role membership_role NOT NULL,
+    status VARCHAR(32) NOT NULL DEFAULT 'active',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_company_user UNIQUE(company_id, user_id)
+);
+
+-- 4. Projects
+CREATE TABLE projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE RESTRICT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    country VARCHAR(2) NOT NULL,
+    currency VARCHAR(3) NOT NULL CHECK (currency IN ('EUR', 'PKR')),
+    timezone VARCHAR(64) NOT NULL,
+    status project_status NOT NULL DEFAULT 'provisioning',
+    cost_impact_threshold NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    time_impact_threshold_days INT NOT NULL DEFAULT 1,
+    erp_project_id VARCHAR(128), -- Strictly Internal, never exposed in client DTO
+    pm_project_id VARCHAR(128),  -- Strictly Internal, never exposed in client DTO
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 5. Project Members
+CREATE TABLE project_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role membership_role NOT NULL,
+    trade_scope VARCHAR(128),
+    visibility_scope VARCHAR(64) NOT NULL DEFAULT 'standard',
+    CONSTRAINT uq_project_user UNIQUE(project_id, user_id)
+);
+
+-- 6. Bill of Quantities (BOQ) Items
+CREATE TABLE boq_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    parent_id UUID REFERENCES boq_items(id) ON DELETE CASCADE,
+    external_cost_id VARCHAR(128),
+    code VARCHAR(64) NOT NULL,
+    description TEXT NOT NULL,
+    unit VARCHAR(32) NOT NULL,
+    quantity NUMERIC(18, 4) NOT NULL DEFAULT 0.0000,
+    unit_price NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    total_price NUMERIC(18, 2) GENERATED ALWAYS AS (ROUND(quantity * unit_price, 2)) STORED,
+    currency VARCHAR(3) NOT NULL CHECK (currency IN ('EUR', 'PKR')),
+    wbs_code VARCHAR(64),
+    trade VARCHAR(64),
+    sort_order INT NOT NULL DEFAULT 0,
+    version INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 7. Activities (Gantt Schedule)
+CREATE TABLE activities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    external_cost_id VARCHAR(128),
+    external_pm_id VARCHAR(128),
+    name VARCHAR(255) NOT NULL,
+    wbs_code VARCHAR(64),
+    baseline_start DATE NOT NULL,
+    baseline_end DATE NOT NULL,
+    actual_start DATE,
+    actual_end DATE,
+    percent_complete NUMERIC(5, 2) NOT NULL DEFAULT 0.00 CHECK (percent_complete BETWEEN 0.00 AND 100.00),
+    planned_value NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    earned_value NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    actual_cost NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(32) NOT NULL DEFAULT 'planned',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 8. Issues, Defects, RFIs, Changes
+CREATE TABLE issues (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    external_pm_id VARCHAR(128),
+    bcf_guid UUID,
+    type issue_type NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status issue_status NOT NULL DEFAULT 'pending_sync',
+    priority issue_priority NOT NULL DEFAULT 'medium',
+    assignee_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    boq_item_id UUID REFERENCES boq_items(id) ON DELETE SET NULL,
+    cost_impact NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    time_impact_days INT NOT NULL DEFAULT 0,
+    visibility VARCHAR(32) NOT NULL DEFAULT 'standard',
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 9. Documents
+CREATE TABLE documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    storage_key VARCHAR(512) NOT NULL UNIQUE,
+    filename VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(128) NOT NULL,
+    size_bytes BIGINT NOT NULL,
+    sha256 VARCHAR(64) NOT NULL,
+    document_type doc_type NOT NULL,
+    visibility VARCHAR(32) NOT NULL DEFAULT 'standard',
+    uploaded_by UUID NOT NULL REFERENCES users(id),
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 10. Document Links
+CREATE TABLE document_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    boq_item_id UUID REFERENCES boq_items(id) ON DELETE CASCADE,
+    issue_id UUID REFERENCES issues(id) ON DELETE CASCADE,
+    activity_id UUID REFERENCES activities(id) ON DELETE CASCADE
+);
+
+-- 11. EVM Snapshots (Immutable Audited Performance)
+CREATE TABLE evm_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    snapshot_date DATE NOT NULL,
+    planned_value NUMERIC(18, 2) NOT NULL,
+    earned_value NUMERIC(18, 2) NOT NULL,
+    actual_cost NUMERIC(18, 2) NOT NULL,
+    spi NUMERIC(8, 4), -- NULL if PV = 0
+    cpi NUMERIC(8, 4), -- NULL if AC = 0
+    source_run_id VARCHAR(128) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_project_date_snapshot UNIQUE (project_id, snapshot_date)
+);
+
+-- 12. External System Mappings
+CREATE TABLE external_mappings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_type VARCHAR(64) NOT NULL,
+    local_id UUID NOT NULL,
+    provider VARCHAR(32) NOT NULL,
+    external_id VARCHAR(128) NOT NULL,
+    external_type VARCHAR(64),
+    last_synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    sync_version INT NOT NULL DEFAULT 1,
+    CONSTRAINT uq_provider_external UNIQUE (provider, external_id),
+    CONSTRAINT uq_local_provider UNIQUE (local_id, provider, entity_type)
+);
+
+-- 13. Sync Queue Outbox
+CREATE TABLE sync_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    provider VARCHAR(32) NOT NULL,
+    entity_type VARCHAR(64) NOT NULL,
+    entity_id UUID NOT NULL,
+    operation VARCHAR(32) NOT NULL,
+    idempotency_key VARCHAR(128) NOT NULL UNIQUE,
+    status sync_status NOT NULL DEFAULT 'pending',
+    attempts INT NOT NULL DEFAULT 0,
+    last_error TEXT,
+    next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 14. Audit Events
+CREATE TABLE audit_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    actor_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(64) NOT NULL,
+    entity_type VARCHAR(64) NOT NULL,
+    entity_id UUID NOT NULL,
+    before_json JSONB,
+    after_json JSONB,
+    ip_hash VARCHAR(64) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes for multitenancy
+CREATE INDEX idx_projects_company ON projects(company_id);
+CREATE INDEX idx_boq_project ON boq_items(project_id);
+CREATE INDEX idx_issues_project ON issues(project_id);
+CREATE INDEX idx_activities_project ON activities(project_id);
+CREATE INDEX idx_audit_company_date ON audit_events(company_id, created_at DESC);
+CREATE INDEX idx_sync_jobs_status_next ON sync_jobs(status, next_attempt_at) WHERE status IN ('pending', 'failed');</code></pre>
+        </div>
+      </section>
+
+      <section id="section-7" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 07</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Authentication & RBAC Permission Matrix</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Zero Upstream Creds</span>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs mb-6 font-mono text-slate-300">
+          User Request ──► [ Bearer JWT (15m expiry) ] ──► [ AuthGuard + Argon2id ] ──► [ TenancyGuard (Company Isolation) ] ──► [ RBAC Guard ] ──► Controller
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="p-3">Role</th>
+                <th class="p-3">BOQ Scope</th>
+                <th class="p-3">Unit Rates & Margins</th>
+                <th class="p-3">Issues / RFIs</th>
+                <th class="p-3">Documents</th>
+                <th class="p-3">Company Settings</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 font-sans text-slate-300">
+              <tr class="hover:bg-slate-800/40">
+                <td class="p-3 font-semibold text-white">Admin</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Full Access</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="p-3 font-semibold text-white">Project Manager</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-slate-500">Read-Only</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="p-3 font-semibold text-white">Site Manager</td>
+                <td class="p-3 text-slate-300">Full Read</td>
+                <td class="p-3 text-rose-400">Masked / Hidden</td>
+                <td class="p-3 text-emerald-400">Read / Write</td>
+                <td class="p-3 text-emerald-400">Upload & Read</td>
+                <td class="p-3 text-rose-500 font-mono">NO ACCESS</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="p-3 font-semibold text-white">Subcontractor</td>
+                <td class="p-3 text-amber-300">Assigned Trade Only</td>
+                <td class="p-3 text-rose-400">Masked / Hidden</td>
+                <td class="p-3 text-amber-300">Assigned Trade Only</td>
+                <td class="p-3 text-amber-300">Assigned Scope Files</td>
+                <td class="p-3 text-rose-500 font-mono">NO ACCESS</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="p-3 font-semibold text-white">Client</td>
+                <td class="p-3 text-slate-300">Read-Only</td>
+                <td class="p-3 text-rose-400">Masked (Totals Only)</td>
+                <td class="p-3 text-slate-400">Selected Visibility</td>
+                <td class="p-3 text-slate-400">Approved Docs Only</td>
+                <td class="p-3 text-rose-500 font-mono">NO ACCESS</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="section-8" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 08</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Integration Adapters & Circuit Breaker Architecture</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">Port-Adapter Pattern</span>
+        </div>
+
+        <p class="text-xs text-slate-300 mb-4">
+          Upstream APIs are isolated behind strongly typed TypeScript port interfaces. Under no circumstances should controllers call upstream REST paths directly or pass raw engine errors to users.
+        </p>
+
+        <div class="relative bg-slate-950 rounded-xl p-5 border border-slate-800 font-mono text-xs overflow-x-auto">
+          <button onclick="copyCode(this)" class="absolute top-3 right-3 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px]">Copy TS</button>
+<pre><code class="text-slate-300">// Location: src/integrations/ports/cost-core.port.ts
+export interface CostCorePort {
+  createProject(input: {
+    localProjectId: string;
+    name: string;
+    currency: 'EUR' | 'PKR';
+    idempotencyKey: string;
+  }): Promise<{ externalId: string }>;
+
+  createBoqItem(projectId: string, input: {
+    code: string;
+    description: string;
+    quantity: string;
+    unitPrice: string;
+    currency: string;
+  }): Promise<{ externalId: string }>;
+
+  getProjectActualCosts(externalProjectId: string): Promise<{ actualCost: string }>;
+}
+
+// Location: src/integrations/ports/pm-core.port.ts
+export interface PmCorePort {
+  createProject(localProjectId: string, name: string): Promise<{ externalId: string }>;
+  createWorkPackage(input: {
+    localIssueId: string;
+    externalProjectId: string;
+    title: string;
+    type: string;
+    priority: string;
+    bcfTopic?: any;
+    idempotencyKey: string;
+  }): Promise<{ externalId: string; bcfGuid?: string }>;
+  
+  getProjectProgress(externalProjectId: string): Promise<Array<{
+    externalId: string;
+    percentComplete: number;
+    actualStart?: string;
+    actualEnd?: string;
+  }>>;
+}</code></pre>
+        </div>
+
+        <div class="mt-4 p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300">
+          <h4 class="font-bold text-white mb-2">Circuit Breaker & Outbox Guarantees</h4>
+          <ul class="list-disc list-inside space-y-1 text-slate-400">
+            <li><strong>Trip Threshold:</strong> 5 consecutive upstream 5xx errors within 60 seconds trips the circuit breaker to <code>OPEN</code>.</li>
+            <li><strong>Fallback Behavior:</strong> All mutating requests persist locally with <code>sync_status: 'pending'</code>, returning a <code>202 Accepted</code> or <code>201 Created</code> along with a synchronized status badge.</li>
+            <li><strong>Retry Schedule:</strong> BullMQ queue processes retries at exponential backoff intervals (5s, 30s, 2m, 10m, 30m) with strict idempotency keys.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="section-9" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 09</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Unified REST API Contract</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Base: /v1</span>
+        </div>
+
+        <!-- Envelope Examples -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono mb-6">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-emerald-400 block mb-2 font-bold">Standard Success Envelope (2xx)</span>
+<pre><code class="text-slate-300">{
+  "data": { "id": "proj_9b1deb4d", "name": "Berlin Logistics Park" },
+  "meta": {
+    "request_id": "req_6c8d102e3b",
+    "timestamp": "2026-09-30T02:18:00Z"
+  }
+}</code></pre>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-rose-400 block mb-2 font-bold">Standard Error Envelope (4xx / 5xx)</span>
+<pre><code class="text-slate-300">{
+  "error": {
+    "code": "PROJECT_NOT_FOUND",
+    "message": "The requested project does not exist.",
+    "request_id": "req_6c8d102e3b"
+  }
+}</code></pre>
+          </div>
+        </div>
+
+        <!-- Endpoints Grid -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800 font-mono text-xs">
+          <table class="w-full text-left">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="p-3">Module</th>
+                <th class="p-3">Method & Path</th>
+                <th class="p-3">Description & Security Scope</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-300">
+              <tr>
+                <td class="p-3 text-slate-400">Auth</td>
+                <td class="p-3 font-semibold text-emerald-400">POST /auth/login</td>
+                <td class="p-3">Argon2id validation, issues JWT + HTTP-Only cookie</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">Auth</td>
+                <td class="p-3 font-semibold text-emerald-400">POST /auth/refresh</td>
+                <td class="p-3">Rotate refresh token, issue fresh 15m access token</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">Projects</td>
+                <td class="p-3 font-semibold text-emerald-400">POST /projects</td>
+                <td class="p-3">Create project, initialize provisioning workflow across engines</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">Projects</td>
+                <td class="p-3 font-semibold text-blue-400">GET /projects/:id</td>
+                <td class="p-3">Retrieve project summary (strips internal upstream engine IDs)</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">BOQ</td>
+                <td class="p-3 font-semibold text-blue-400">GET /projects/:id/boq</td>
+                <td class="p-3">Retrieve full WBS tree; strips rates if user lacks permission</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">BOQ</td>
+                <td class="p-3 font-semibold text-amber-400">PATCH /boq-items/:id</td>
+                <td class="p-3">Decimal recalculation; records outbox sync to cost-core</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">Issues</td>
+                <td class="p-3 font-semibold text-emerald-400">POST /projects/:id/issues</td>
+                <td class="p-3">Create issue; syncs to OpenProject work package and BCF topic</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">Documents</td>
+                <td class="p-3 font-semibold text-emerald-400">POST /projects/:id/documents/presign</td>
+                <td class="p-3">Generate S3 direct presigned PUT URL (15-minute expiry)</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">Documents</td>
+                <td class="p-3 font-semibold text-emerald-400">POST /projects/:id/documents/complete</td>
+                <td class="p-3">Finalize upload; verify SHA-256 and size; run antivirus queue</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">Reporting</td>
+                <td class="p-3 font-semibold text-blue-400">GET /projects/:id/reports/evm</td>
+                <td class="p-3">Fetch chronological EVM trend snapshots (PV, EV, AC, SPI, CPI)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="section-10" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 10</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Critical Domain Workflows & Mathematical Pipelines</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">Business Logic</span>
+        </div>
+
+        <div class="space-y-6 text-xs text-slate-300">
+          <!-- 10.1 Project Provisioning -->
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2">10.1. Project Provisioning Workflow</h3>
+            <ol class="list-decimal list-inside space-y-1.5 text-slate-400">
+              <li>Client calls <code>POST /v1/projects</code> with required <code>Idempotency-Key</code> header.</li>
+              <li>Middleware verifies company membership, active tenancy status, and currency (<code>EUR</code> or <code>PKR</code>).</li>
+              <li>Insert local <code>projects</code> record with <code>status: 'provisioning'</code>.</li>
+              <li>Enqueue job to BullMQ <code>project-provisioning</code> queue.</li>
+              <li>Worker creates cost-center in <code>cost-core</code> &rarr; records internal mapping <code>erp_project_id</code>.</li>
+              <li>Worker creates project in <code>pm-core</code> &rarr; records internal mapping <code>pm_project_id</code>.</li>
+              <li>Seed default work-package categories and custom BCF fields.</li>
+              <li>Transition local project status to <code>active</code>, write an audit event, and emit completion WebSocket event.</li>
+            </ol>
+          </div>
+
+          <!-- 10.2 BOQ Engine & Decimal Math -->
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2">10.2. BOQ Decimal Math & Recalculation</h3>
+            <p class="text-slate-400 mb-3">All arithmetic uses <code class="text-emerald-400">Decimal.js</code> with strict <code class="text-slate-300">ROUND_HALF_UP</code> precision:</p>
+            <div class="relative bg-slate-900 rounded-lg p-4 font-mono text-[11px] overflow-x-auto mb-3">
+<pre><code class="text-slate-300">total_price = quantity.times(unit_price).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+// Parent section total = sum of child items total_price</code></pre>
+            </div>
+            <p class="text-slate-400">Every write generates an outbox entry. If <code>cost-core</code> is unreachable, local modifications remain active while the row displays a pending sync indicator.</p>
+          </div>
+
+          <!-- 10.3 EVM Scheduled Pipeline -->
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2">10.3. EVM Metrics & Division-by-Zero Protection</h3>
+            <p class="text-slate-400 mb-3">A nightly cron aggregates progress from <code>pm-core</code> and financial actuals from <code>cost-core</code>:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-[11px] mb-3">
+              <div class="p-3 bg-slate-900 rounded border border-slate-800">
+                <span class="text-emerald-400 font-bold">Schedule Performance Index (SPI)</span>
+                <p class="text-slate-300 mt-1">SPI = EV / PV</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">*If PV == 0, store NULL (do not store Infinity or NaN)</p>
+              </div>
+              <div class="p-3 bg-slate-900 rounded border border-slate-800">
+                <span class="text-blue-400 font-bold">Cost Performance Index (CPI)</span>
+                <p class="text-slate-300 mt-1">CPI = EV / AC</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">*If AC == 0, store NULL (do not store Infinity or NaN)</p>
+              </div>
+            </div>
+            <p class="text-slate-400">Snapshots are saved to <code>evm_snapshots</code> as an immutable historical record. An automated alert triggers if SPI or CPI falls below 0.85.</p>
+          </div>
+
+          <!-- 10.4 Direct S3 Object Storage -->
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2">10.4. Object Storage & Secure Presigned I/O</h3>
+            <p class="text-slate-400 mb-2">Binary files never pass directly through the middleware Node.js runtime process:</p>
+            <ol class="list-decimal list-inside space-y-1 text-slate-400">
+              <li>Client requests presigned URL via <code>POST /documents/presign</code>.</li>
+              <li>Middleware generates storage key: <code>companies/{company_id}/projects/{project_id}/documents/{document_id}/{safe_filename}</code>.</li>
+              <li>Client streams binary directly to S3 / MinIO via <code>PUT</code>.</li>
+              <li>Client invokes <code>POST /documents/complete</code> with SHA-256 hash and exact byte size.</li>
+              <li>Asynchronous worker verifies S3 object headers and queues ClamAV antivirus check before marking the file as <code>available</code>.</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-11" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 11</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Web & Mobile PWA Technical Specifications</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">Next.js & PWA</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-300">
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded bg-blue-400"></span> const-web-ui (Web Portal)
+            </h3>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-400">
+              <li><strong>Stack:</strong> Next.js 14+ (App Router), Tailwind CSS, TanStack Query v5.</li>
+              <li><strong>Localization:</strong> Full EN & DE translation keys using <code>next-intl</code>.</li>
+              <li><strong>Formatting:</strong> Automatically format currency according to project settings:
+                <ul class="pl-5 list-circle mt-1 space-y-0.5">
+                  <li><code>EUR</code>: <code>1.234.567,89 €</code> (German standard)</li>
+                  <li><code>PKR</code>: <code>Rs 1,234,567.89</code> (PKR standard)</li>
+                </ul>
+              </li>
+              <li><strong>Gantt & Data Grid:</strong> Highly virtualized canvas/DOM tables with MIT-compatible licensing. No unlicensed GPL code in client bundles.</li>
+            </ul>
+          </div>
+
+          <div class="p-5 rounded-xl bg-slate-950 border border-slate-800">
+            <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded bg-emerald-400"></span> const-mobile (Offline PWA)
+            </h3>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-400">
+              <li><strong>Features:</strong> Site diaries, camera capture, snag reporting, digital signature pad.</li>
+              <li><strong>Offline Queue:</strong> Local writes persist to IndexedDB (via Dexie.js) when disconnected.</li>
+              <li><strong>Conflict Handling Rules:</strong>
+                <ul class="pl-5 list-circle mt-1 space-y-0.5">
+                  <li><em>Server Wins:</em> Status conflicts defer to the current server state.</li>
+                  <li><em>Append Only:</em> Photos and diary entries are never overwritten on conflict.</li>
+                  <li><em>Idempotency:</em> Replayed operations send identical <code>Idempotency-Key</code> values to prevent duplicate entries.</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-12" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 12</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Production Infrastructure & CI/CD Pipeline</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">GitOps & Security</span>
+        </div>
+
+        <div class="relative bg-slate-950 rounded-xl p-5 border border-slate-800 font-mono text-xs overflow-x-auto mb-4">
+          <button onclick="copyCode(this)" class="absolute top-3 right-3 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px]">Copy</button>
+<pre><code class="text-slate-300">[ Git Push main ]
+       │
+       ▼
+1. LINT & TYPECHECK ────► ESLint, Prettier, TypeScript strict mode
+       │
+       ▼
+2. AUTOMATED TESTING ───► Jest unit tests + Supertest integration suites
+       │
+       ▼
+3. SECURITY AUDIT ──────► Trivy container scan, SonarQube SAST, npm audit
+       │
+       ▼
+4. BUILD & SIGN ────────► Multi-stage Docker builds, Cosign cryptographic signing
+       │
+       ▼
+5. STAGING DEPLOY ──────► Helm upgrade via ArgoCD (Automated smoke tests)
+       │
+       ▼
+6. PRODUCTION GATE ─────► Manual approval by Lead Architect
+       │
+       ▼
+7. CANARY ROLLOUT ──────► 10% -> 50% -> 100% traffic with automatic rollback on 5xx spike</code></pre>
+        </div>
+      </section>
+
+      <section id="section-13" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 13</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Observability, Telemetry & Scrubbing Rules</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Zero Leakage</span>
+        </div>
+
+        <p class="text-xs text-slate-300 mb-4">
+          Every HTTP transaction is assigned an immutable <code class="text-emerald-400">request_id</code> header passed through downstream queue jobs and logs.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-emerald-400 font-bold block mb-2 font-sans">Core Metrics Monitored</span>
+            <ul class="space-y-1 text-slate-400 list-disc list-inside font-sans text-xs">
+              <li>API response latency and 5xx error distribution</li>
+              <li>Project provisioning success and failure rates</li>
+              <li>BullMQ queue depth, retry rates, and dead-letter jobs</li>
+              <li>EVM nightly aggregation run execution time</li>
+              <li>S3 upload failures and ClamAV quarantine triggers</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-rose-400 font-bold block mb-2 font-sans">Zero-Leakage Scrubbing Rules</span>
+            <p class="text-slate-400 font-sans text-xs mb-2">The logging pipeline must redact matching keys before writing to disk or OpenTelemetry collectors:</p>
+            <div class="bg-slate-900 p-2 rounded text-[11px] text-slate-300">
+              <code>password</code>, <code>password_hash</code>, <code>token</code>, <code>authorization</code>, <code>cookie</code>, <code>amqp://*</code>, <code>postgres://*</code>, <code>*.internal</code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-14" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 14</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Comprehensive Verification Test Matrix</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">Quality Assurance</span>
+        </div>
+
+        <div class="space-y-3 font-mono text-xs">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-emerald-400 font-bold">1. Multi-Tenant Isolation Test</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">A user authenticated in Company A calls <code>GET /v1/projects/:id_from_company_b</code>. Expected outcome: <code>404 Not Found</code> with zero tenant leakage.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-blue-400 font-bold">2. Security & Information Leakage Audit</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">Force an error in upstream services. The customer-facing response must contain only a generic message, our internal error code, and a request ID. No upstream product names, SQL schemas, or stack traces may appear.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-amber-400 font-bold">3. Financial Decimal Precision Test</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">Create a BOQ item with <code>quantity = 0.3333</code> and <code>unit_price = 10.00</code>. Expected result: <code>total_price = 3.33</code>. IEEE-754 floating-point drift is not allowed.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800">
+            <span class="text-purple-400 font-bold">4. Upstream Outage Recovery Simulation</span>
+            <p class="text-slate-400 mt-1 font-sans text-xs">Stop the <code>pm-core</code> container and submit an issue via the API. The record must be created locally with status <code>pending_sync</code>. Once <code>pm-core</code> is restarted, background workers must clear the queue and mark the issue as synced without duplicate records.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-15" class="scroll-mt-20 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold text-emerald-400">SECTION 15</span>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Definition of Done (DoD) Checklist</h2>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Release Gate</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">Cross-tenant isolation verified with multi-company test suite</span>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">Upstream engines fully headless and inaccessible from public internet</span>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">Project creation is idempotent with automated recovery flows</span>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">BOQ totals use decimal types and reconcile with cost-core calculations</span>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">Subcontractor & client roles cannot view restricted unit rates</span>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">Offline PWA queue handles conflicts cleanly without data loss</span>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">EVM metrics aggregate automatically and handle zero-denominator edge cases safely</span>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer">
+            <input type="checkbox" checked disabled class="mt-0.5 rounded border-slate-700 text-emerald-500 focus:ring-0">
+            <span class="text-slate-300">OSS licenses, copyrights, and image digests recorded in THIRD_PARTY.md</span>
+          </label>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+          <p>&copy; Enterprise Construction Platform Specification &bull; Confidential & Internal Developer Reference</p>
+          <div class="flex items-center gap-3">
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="text-emerald-400 hover:underline">Back to top &uarr;</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-emerald-600 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <span id="toast-message">Copied to clipboard</span>
+  </div>
+
+  <script>
+    // Show Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // Copy Code Helper
+    function copyCode(btn) {
+      const codeBlock = btn.parentElement.querySelector('code');
+      if (codeBlock) {
+        const text = codeBlock.innerText;
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast('Code block copied to clipboard');
+      }
+    }
+
+    // Download entire document as an HTML file
+    function downloadSelfHTML() {
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'construction-platform-engineering-spec.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('HTML specification downloaded');
+    }
+
+    // ScrollSpy active link highlighting
+    window.addEventListener('DOMContentLoaded', () => {
+      const links = document.querySelectorAll('.toc-link');
+      const sections = Array.from(links).map(link => document.querySelector(link.getAttribute('href')));
+
+      window.addEventListener('scroll', () => {
+        const scrollPos = window.scrollY + 120;
+        sections.forEach((sec, idx) => {
+          if (sec) {
+            const top = sec.offsetTop;
+            const height = sec.offsetHeight;
+            if (scrollPos >= top && scrollPos < top + height) {
+              links.forEach(l => l.classList.remove('bg-emerald-500/10', 'text-emerald-400', 'font-semibold'));
+              links[idx].classList.add('bg-emerald-500/10', 'text-emerald-400', 'font-semibold');
+            }
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
