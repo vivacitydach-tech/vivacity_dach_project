@@ -5,7 +5,13 @@ const USER_KEY = 'te_field_user'
 const PROJECT_KEY = 'te_field_project'
 
 export function getApiUrl(): string {
-  return import.meta.env.VITE_API_URL ?? 'http://localhost:3000/v1'
+  if (import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.includes('localhost:3000')) {
+    return import.meta.env.VITE_API_URL
+  }
+  if (typeof window !== 'undefined') {
+    return '/v1'
+  }
+  return '/v1'
 }
 
 export function getCompanyId(): string {
