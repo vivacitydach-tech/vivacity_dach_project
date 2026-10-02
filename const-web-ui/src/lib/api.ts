@@ -2,8 +2,15 @@ import axios, { AxiosError, type AxiosInstance } from 'axios';
 import { getCompanyId, getToken, logout } from './auth';
 import type { ApiErrorBody, ApiSuccess } from './types';
 
-const baseURL =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/v1';
+function getBaseURL(): string {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    return '/v1';
+  }
+  return 'http://api:3000/v1';
+}
 
 export class ApiClientError extends Error {
   code: string;
@@ -20,7 +27,7 @@ export class ApiClientError extends Error {
 }
 
 export const api: AxiosInstance = axios.create({
-  baseURL,
+  baseURL: getBaseURL(),
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
 });
