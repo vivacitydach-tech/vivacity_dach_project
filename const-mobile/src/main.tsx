@@ -7,9 +7,14 @@ import './index.css'
 
 registerSW({ immediate: true })
 
+const basename =
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/field')
+    ? '/field'
+    : '/'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <App />
     </BrowserRouter>
   </StrictMode>,
