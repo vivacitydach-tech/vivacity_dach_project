@@ -14,8 +14,8 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Target Enterprise · Construction Platform',
-  description: 'Construction project portal for Target Enterprise',
+  title: 'ADO Innenausbau · Bau- & Projektplattform',
+  description: 'Baumanagement- & Innenausbau-Portal für ADO Innenausbau (ado-innenausbau.de)',
 };
 
 export default function RootLayout({

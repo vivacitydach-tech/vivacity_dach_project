@@ -39,11 +39,11 @@ export function LoginPage() {
     <div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-4 py-8">
       <div className="te-card p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
-          Target Enterprise
+          ADO Innenausbau
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-emerald-950">Field</h1>
+        <h1 className="mt-1 text-3xl font-bold text-emerald-950">Field Portal</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Offline-first site diary, snag reporting, and photo capture.
+          Mobile Baustellenerfassung, Bautagebuch und Mängelmanagement.
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={onSubmit}>

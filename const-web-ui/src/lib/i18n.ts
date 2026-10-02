@@ -2,8 +2,8 @@ export type Locale = 'en' | 'de';
 
 export const messages = {
   en: {
-    brand: 'Target Enterprise',
-    portal: 'Construction Platform',
+    brand: 'ADO Innenausbau',
+    portal: 'Construction & Fit-Out Platform',
     platformVersion: 'v1.0',
     dashboard: 'Dashboard',
     projects: 'Projects',
@@ -86,8 +86,8 @@ export const messages = {
     evDerivedHint: 'EV derived from % complete × PV when EV is zero',
   },
   de: {
-    brand: 'Target Enterprise',
-    portal: 'Bauplattform',
+    brand: 'ADO Innenausbau',
+    portal: 'Bau- & Innenausbau Plattform',
     platformVersion: 'v1.0',
     dashboard: 'Übersicht',
     projects: 'Projekte',

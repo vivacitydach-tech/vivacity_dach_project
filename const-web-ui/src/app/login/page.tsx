@@ -65,10 +65,10 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-semibold text-slate-100">
-            Target Enterprise
+            ADO Innenausbau
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Construction Platform{' '}
+            Bau- &amp; Innenausbau Plattform{' '}
             <span className="font-mono text-slate-500">· v1.0</span>
           </p>
         </div>
