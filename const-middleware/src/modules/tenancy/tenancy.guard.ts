@@ -25,16 +25,37 @@ export class TenancyGuard implements CanActivate {
     }>();
 
     const companyHeader = req.headers['x-company-id'];
-    const companyId = Array.isArray(companyHeader)
+    let companyId = Array.isArray(companyHeader)
       ? companyHeader[0]
       : companyHeader;
 
-    if (!companyId) {
-      throw new BadRequestException('X-Company-Id header is required');
-    }
-
     if (!req.user?.id) {
       throw new NotFoundException('Resource not found');
+    }
+
+    const projectId = req.params?.projectId || req.params?.id;
+    if (projectId) {
+      const project = await this.prisma.project.findUnique({
+        where: { id: projectId },
+      });
+      if (project) {
+        // Verify user is a member of this project's company
+        const projectMembership = await this.prisma.membership.findUnique({
+          where: {
+            companyId_userId: {
+              companyId: project.companyId,
+              userId: req.user.id,
+            },
+          },
+        });
+        if (projectMembership) {
+          companyId = project.companyId;
+        }
+      }
+    }
+
+    if (!companyId) {
+      throw new BadRequestException('X-Company-Id header is required');
     }
 
     const membership = await this.prisma.membership.findUnique({
