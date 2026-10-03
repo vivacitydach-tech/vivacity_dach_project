@@ -36,26 +36,26 @@ async function main() {
   const company = await prisma.company.upsert({
     where: { id: '00000000-0000-4000-8000-000000000001' },
     update: {
-      name: 'Target Enterprise',
+      name: 'ADO Innenausbau GmbH',
       country: 'DE',
       currency: 'EUR',
       timezone: 'Europe/Berlin',
-      locale: 'en',
+      locale: 'de',
     },
     create: {
       id: '00000000-0000-4000-8000-000000000001',
-      name: 'Target Enterprise',
+      name: 'ADO Innenausbau GmbH',
       country: 'DE',
       currency: 'EUR',
       timezone: 'Europe/Berlin',
-      locale: 'en',
+      locale: 'de',
     },
   });
 
   const companyPk = await prisma.company.upsert({
     where: { id: '00000000-0000-4000-8000-000000000002' },
     update: {
-      name: 'Target Pakistan',
+      name: 'ADO Innenausbau (Pakistan)',
       country: 'PK',
       currency: 'PKR',
       timezone: 'Asia/Karachi',
@@ -63,7 +63,7 @@ async function main() {
     },
     create: {
       id: '00000000-0000-4000-8000-000000000002',
-      name: 'Target Pakistan',
+      name: 'ADO Innenausbau (Pakistan)',
       country: 'PK',
       currency: 'PKR',
       timezone: 'Asia/Karachi',
@@ -274,10 +274,83 @@ async function main() {
     },
   });
 
+  // Seed Pakistan project for Company 2
+  const projectPk = await prisma.project.upsert({
+    where: { id: '00000000-0000-4000-8000-000000000020' },
+    update: {
+      name: 'Karachi Commercial Complex',
+      code: 'KCC-001',
+      status: ProjectStatus.active,
+      erpProjectId: 'ERP-SEED002',
+      pmProjectId: 'PM-SEED002',
+    },
+    create: {
+      id: '00000000-0000-4000-8000-000000000020',
+      companyId: companyPk.id,
+      name: 'Karachi Commercial Complex',
+      code: 'KCC-001',
+      status: ProjectStatus.active,
+      erpProjectId: 'ERP-SEED002',
+      pmProjectId: 'PM-SEED002',
+    },
+  });
+
+  await prisma.projectMember.upsert({
+    where: {
+      projectId_userId: { projectId: projectPk.id, userId: createdUsers['admin@target.local'].id },
+    },
+    update: { role: MembershipRole.admin },
+    create: {
+      projectId: projectPk.id,
+      userId: createdUsers['admin@target.local'].id,
+      role: MembershipRole.admin,
+    },
+  });
+
+  await prisma.boqItem.deleteMany({ where: { projectId: projectPk.id } });
+  const parentPk = await prisma.boqItem.create({
+    data: {
+      projectId: projectPk.id,
+      code: '01',
+      name: 'Civil & Structure',
+      unit: null,
+      quantity: new Prisma.Decimal(0),
+      unitPrice: new Prisma.Decimal(0),
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.boqItem.createMany({
+    data: [
+      {
+        projectId: projectPk.id,
+        parentId: parentPk.id,
+        code: '01.01',
+        name: 'Foundation Piling Works',
+        unit: 'm',
+        quantity: new Prisma.Decimal('450.0000'),
+        unitPrice: new Prisma.Decimal('12500.00'),
+        sortOrder: 1,
+      },
+      {
+        projectId: projectPk.id,
+        parentId: parentPk.id,
+        code: '01.02',
+        name: 'RCC Superstructure Concrete',
+        unit: 'm3',
+        quantity: new Prisma.Decimal('850.0000'),
+        unitPrice: new Prisma.Decimal('22000.00'),
+        sortOrder: 2,
+      },
+    ],
+  });
+
   // eslint-disable-next-line no-console
   console.log('Seed complete:', {
     companyId: company.id,
     projectId: project.id,
+    companyPkId: companyPk.id,
+    projectPkId: projectPk.id,
     users: users.map((u) => u.email),
   });
 }

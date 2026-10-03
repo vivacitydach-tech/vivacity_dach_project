@@ -252,8 +252,7 @@ export function Sidebar() {
   function onCompanyChange(nextId: string) {
     setCompanyId(nextId);
     setCompanyIdState(nextId);
-    router.refresh();
-    window.location.reload();
+    window.location.href = '/projects';
   }
 
   return (
