@@ -271,8 +271,8 @@ export function Sidebar() {
             <span className="block text-sm font-bold tracking-tight text-white">
               ADO Innenausbau
             </span>
-            <span className="block font-mono text-[10px] text-emerald-400">
-              {locale === 'de' ? 'Bauplattform v1.0' : 'Enterprise Spec v1.0'}
+            <span className="block text-[11px] text-emerald-400">
+              {locale === 'de' ? 'Bau- & Innenausbau' : 'Construction Platform'}
             </span>
           </div>
         </Link>
@@ -281,7 +281,7 @@ export function Sidebar() {
       {/* Navigation Modules with Hover Dropdown Flyouts */}
       <nav className="flex-1 space-y-1.5 overflow-visible px-3 py-4">
         <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-          {locale === 'de' ? 'Module & Funktionen' : 'Platform Modules (Spec v1.0)'}
+          {locale === 'de' ? 'Module & Navigation' : 'Platform Modules'}
         </div>
 
         {specModules.map((mod) => {

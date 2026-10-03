@@ -68,8 +68,7 @@ export default function LoginPage() {
             ADO Innenausbau
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Bau- &amp; Innenausbau Plattform{' '}
-            <span className="font-mono text-slate-500">· v1.0</span>
+            Bau- &amp; Innenausbau Plattform
           </p>
         </div>
 

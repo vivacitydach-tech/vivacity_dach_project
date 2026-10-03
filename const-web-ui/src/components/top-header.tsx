@@ -67,8 +67,7 @@ export function TopHeader() {
               {t('brand')}
             </p>
             <p className="truncate text-xs text-slate-400">
-              {t('portal')}{' '}
-              <span className="font-mono text-slate-500">· {t('platformVersion')}</span>
+              {t('portal')}
             </p>
           </div>
         </Link>
@@ -135,11 +134,12 @@ export function TopHeader() {
             )}
           </div>
 
-          <span className="hidden rounded-md border border-slate-800 bg-slate-900/80 px-2 py-1 font-mono text-[11px] text-slate-400 sm:inline">
-            TE · CONSTRUCTION
+          <span className="hidden rounded-md border border-slate-800 bg-slate-900/80 px-2 py-1 font-mono text-[11px] text-slate-300 sm:inline">
+            ADO · INNENAUSBAU
           </span>
-          <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 font-mono text-[11px] text-emerald-400">
-            {t('platformVersion')}
+          <span className="flex items-center gap-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Active
           </span>
         </div>
       </div>
