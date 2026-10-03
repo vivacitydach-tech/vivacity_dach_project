@@ -21,6 +21,7 @@ export class TenancyGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<{
       user?: { id: string };
       headers: Record<string, string | string[] | undefined>;
+      params?: Record<string, string | undefined>;
       tenancy?: TenantContext;
     }>();
 
